@@ -373,3 +373,39 @@ Para ver ejemplos de Project Reactor con Flux, ver proyecto `01-reactive-program
   - Vamos a ver como convertir un Mono en un Flux y viceversa.
 - `Assignment`
   - Es un ejercicio.
+
+## Flux - Emitir items programáticamente
+
+Vamos a ver como emitir items programáticamente, por ejemplo emitir data hasta que se cumpla una condición.
+
+[README.md](./01-reactive-programming-playground/README.md)
+
+Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `sec04` donde están las siguientes clases:
+
+- `Lec01FluxCreate`
+  - Vemos el método `Fkux.create()`
+- En `src/java/com/jmunoz/sec04/helper` creamos la clase:   
+  - `NameGenerator`
+    - Implementamos un consumer.
+  - `Lec02FluxCreateRefactor`
+    - Vemos como refactorizar `Lec01FluxCreate` para que sea más limpio.
+- `Lec03FluxSinkThreadSafety`
+  - Vemos como usar Flux Sink para emitir items desde diferentes threads.
+- `Lec04FluxCreateDownstreamDemand`
+  - Vemos un comportamiento por defecto de Flux Create, que es que el producer produce los items por adelantado, sin esperar a que el subscriber haga un request.
+- `Lec04bFluxCreateDownstreamDemand`
+  - Cambiamos el comportamiento de `Lec04FluxSinkThreadSafety` para que el producer produzca los items solo cuando el subscriber hace un request.
+- `Lec05TakeOperator`
+  - Vemos como usar el operador `take()` para limitar el número de items que se emiten.
+  - Vemos como usar el operador `takeWhile()` para emitir items mientras se cumpla una condición. Para cuando la condición ya no se cumple.
+  - Vemos como usar el operador `takeUntil()` para emitir items hasta que se cumpla una condición. Para cuando la condición se cumple.
+- `Lec06FluxGenerate`
+  - Vemos en este ejemplo que `Flux.generate()` solo permite emitir un item, pero las veces que queramos, bajo demanda.
+- `Lec07FluxGenerateUntil`
+  - Vemos como usar `Flux.generate()` para emitir items hasta que se cumpla una condición.
+- `Lec08GenerateWithState`
+  - Vemos los problemas que pueden surgir al usar `Flux.generate()` con un estado mutable.
+- `Lec08bGenerateWithState`
+  - Vemos la solución al problema del estado mutable usando un estado inicial.
+- `FileReaderService` y `FileReaderServiceImpl` y la clase de prueba `Assignment`.
+  - Es un ejercicio.

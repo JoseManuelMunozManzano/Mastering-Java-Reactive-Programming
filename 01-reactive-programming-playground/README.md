@@ -614,3 +614,182 @@ En `src/java/com/jmunoz/sec03/client` creamos un método en la clase:
 - Flux emite 0, 1, ..., N items.
 - Seguido de onComplete / onError.
 - Hemos visto Factory Methods para crear un Flux, pero no ha sido una lista exhaustiva.
+
+# Flux - Emitir items programáticamente
+
+En la sección anterior hemos visto como crear un Flux a partir de data existente, pero no hemos visto como emitir items programáticamente, por ejemplo emitir data hasta que se cumpla una condición.
+
+## Flux Create
+
+Para esto, Reactor provee algunas opciones que son las que vamos a ver en esta sección.
+
+En `src/java/com/jmunoz/sec04` creamos la clase:
+
+- `Lec01FluxCreate`
+  - Vemos el método `Fkux.create()`
+
+## Flux Create - Refactor
+
+En la clase anterior vimos como añadir toda la lógica dentro de la expresión lambda del método `Flux.create()`.
+
+Pero si hay mucha lógica, es mejor refactorizarla a un método/clase aparte.
+
+En `src/java/com/jmunoz/sec04` creamos el package `helper` y dentro la clase:
+
+- `NameGenerator`
+  - Implementamos un consumer.
+
+En `src/java/com/jmunoz/sec04` creamos la clase:
+
+- `Lec02FluxCreateRefactor`
+  - Vemos como refactorizar `Lec01FluxCreate` para que sea más limpio.
+
+## Flux Sink - Thread Safety
+
+Flux Sink es thread safe, es decir, podemos emitir items desde diferentes threads sin problemas.
+
+En `src/java/com/jmunoz/sec04` creamos la clase:
+
+- `Lec03FluxSinkThreadSafety`
+  - Vemos como usar Flux Sink para emitir items desde diferentes threads.
+
+## Flux Create - Comportamiento por defecto
+
+Vamos a ver el comportamiento por defecto de `Flux.create()`, que puede no gustarnos, ya que no es lo que esperamos.
+
+El producer produce los items por adelantado, sin esperar a que el subscriber haga un request.
+
+En `src/java/com/jmunoz/sec04` creamos la clase:
+
+- `Lec04FluxCreateDownstreamDemand`
+
+## Flux Create - Emit on Demand
+
+Vamos a cambiar el comportamiento por defecto de `Flux.create()` para que emita los items bajo demanda, es decir, cuando el subscriber haga un request.
+
+En `src/java/com/jmunoz/sec04` creamos la clase:
+
+- `Lec04bFluxCreateDownstreamDemand`
+
+## Flux Sink - Casos de uso
+
+Flux.create -> FluxSink:
+
+- Diseñado para usarse cuando tenemos un solo subscriber.
+- FluxSink es thread safe. Podemos compartirlo entre varios threads.
+- Podemos mantener la emisión de items al sink sin tener que preocuparnos de una baja demanda.
+- FluxSink entregará todo al subscriber de forma segura, secuencialmente, de uno en uno.
+  - No hay problemas de race condition ya que se sincroniza internamente.
+
+## Take Operators
+
+Vamos a hablar del operador `take()`, que nos permite limitar el número de items que se emiten. Es muy parecido a `limit()` en Java Streams.
+
+También hablaremos del operador `takeWhile()` que nos permite emitir items mientras se cumpla una condición.
+
+También hablaremos del operador `takeUntil()`, que nos permite emitir items hasta que se cumpla una condición.
+
+En `src/java/com/jmunoz/sec04` creamos la clase:
+
+- `Lec05TakeOperator`
+  - Vemos como usar el operador `take()` para limitar el número de items que se emiten.
+  - Vemos como usar el operador `takeWhile()` para emitir items mientras se cumpla una condición.
+  - Vemos como usar el operador `takeUntil()` para emitir items hasta que se cumpla una condición.
+
+## Flux Generate
+
+Mientras que `Flux.create()` acepta un Consumer de `FluxSync`, el método `Flux.generate()` acepta un Consumen de `SynchronousSink`.
+
+La diferencia es que con `Flux.generate()` podemos emitir solo un item y que con `Flux.create()` obteníamos la request y nos permitía controlar el bucle para emitir items. Es decir es de más bajo nivel.
+
+Con `Flux.generate()` tenemos que pensar que internamente existe ese bucle que obtiene el request de forma automática. Es de más alto nivel.
+
+¿Cuál es la diferencia con un `Mono`? Un `Mono` permite emitir solo un item y se acabó, pero con `Flux.generate()` podemos usar un `SynchronousSink` para emitir un valor una y otra vez, mientras no se ejecute `complete()` o `error()`.
+
+En `src/java/com/jmunoz/sec04` creamos la clase:
+
+- `Lec06FluxGenerate`
+  - Vemos en este ejemplo que `Flux.generate()` solo permite emitir un item, pero las veces que queramos, bajo demanda.
+
+## Flux Generate - Emit Until
+
+En `src/java/com/jmunoz/sec04` creamos la clase:
+
+- `Lec07FluxGenerateUntil`
+  - Vemos como usar `Flux.generate()` para emitir items hasta que se cumpla una condición.
+
+## Flux Generate - State problem
+
+Vamos a hablar de un posible problema que puede surgir al usar `Flux.generate()` cuando tenemos un estado mutable.
+
+`Flux.generate()` es sin estado.
+
+En `src/java/com/jmunoz/sec04` creamos la clase:
+
+- `Lec08GenerateWithState`
+  - Vemos los problemas que pueden surgir al usar `Flux.generate()` con un estado mutable.
+
+## Flux Generate - State Supplier
+
+Para evitar el problema del estado mutable, podemos proveer el estado como un valor inicial (un objeto, una conexión a BD, lo que queramos) que se invoca una sola vez, al método `Flux.generate()`.
+
+Ese objeto se pasa también junto con `synchronousSink` y se puede usar para emitir items.
+
+Se devuelve el estado actualizado al final de la ejecución.
+
+Si el estado inicial consiste en abrir una conexión a BD, ¿cuándo se cierra? Se acepta un tercer parámetro para ello (optativo).
+
+```java
+Flux.generate(
+        () -> someObject,  // Invocado solo una vez
+        (someObject, synchronousSink) -> {
+            // Aquí podemos usar someObject para emitir items
+            // ...
+            return someObject;  // Devolvemos el estado actualizado
+        },
+        someObject -> close   // Invocado solo una vez. Sirve también para onComlete, onError, onCancel...
+)
+```
+
+- `Lec08bGenerateWithState`
+  - Vemos la solución al problema del estado mutable usando un estado inicial.
+
+## Ejercicio
+
+Vamos a implementar la siguiente interface:
+
+```java
+public interface FileReaderService {
+    Flux<String> read(Path path);
+}
+```
+
+En `src/java/com/jmunoz/sec04/assignment` creamos la interface `FileReaderService` que cree el contrato:
+
+- Leer fichero y devolver contenido.
+- Crear fichero y escribir contenido.
+- Borrar fichero.
+
+Y su implementación `FileReaderServiceImpl`.
+
+También creamos la clase de prueba `Assignment`.
+
+## Resumen
+
+![alt Flux Create vs Flux Generate](./images/09-FluxCreateVsGenerate.png)
+
+En `Flux.generate()`, como solo se emite un item, no tiene sentido compartirlo con varios threads, así que no aplica.
+
+**Flux.create()**
+
+- Diseñado para usarse cuando tenemos un solo subscriber.
+- FluxSink es thread safe. Podemos compartirlo entre varios threads.
+- Podemos mantener la emisión de items al sink sin tener que preocuparnos de una baja demanda.
+- FluxSink entregará todo al subscriber de forma segura, secuencialmente, de uno en uno.
+- Items pendientes
+  - ¿Qué pasa si quiero tener varios subscribers?
+  - Gestión de backpressure, ya que en algún momento la cola se va a llenar.
+
+**Flux.generate()**
+
+- Permite crear una utilidad genérica.
