@@ -409,3 +409,33 @@ Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `se
   - Vemos la solución al problema del estado mutable usando un estado inicial.
 - `FileReaderService` y `FileReaderServiceImpl` y la clase de prueba `Assignment`.
   - Es un ejercicio.
+
+## Operators
+
+[README.md](./01-reactive-programming-playground/README.md)
+
+Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `sec05` donde están las siguientes clases:
+
+- `Lec01Handle`
+  - Handle se comporta como un filter + map.
+- `Lec02HandleUntil`
+  - Ejemplo de uso de handle para filtrar hasta que se encuentre un elemento específico.
+- `Lec03DoCallbacks`
+  - Vemos ejemplos de como usar los callbacks doOnNext, doOnSubscribe, doOnComplete, doOnError, doOnCancel, doFinally, doOnRequest...
+- `Lec04Delay`
+  - Vemos como retrasar la emisión de items usando el operador `delayElements()`.
+- `Lec05Subscribe`
+  - Vemos los operadores doOnNext(), doOnComplete() y doOnError(), que se pueden usar en vez de indicar el subscriber en .subscribe().
+- `Lec06ErrorHandling`
+  - Vemos las formas de manejar errores en un flujo reactivo, valiendo igual para Mono que para Flux.
+- `Lec07DefaultIfEmpty`
+  - Vemos como usar el operador `defaultIfEmpty()` para devolver un valor por defecto si el publisher no emite ningún item.
+- `Lec08SwitchIfEmpty`
+  - Vemos como usar el operador `switchIfEmpty()` para cambiar a otro publisher si el publisher original no emite ningún item.
+- `Lec09Timeout`
+  - Vemos como usar el operador `timeout()` para manejar el timeout en un flujo reactivo.
+- `Lec10Transform`
+  - Vemos como usar el operador `transform()` para construir pasos reutilizables en un pipeline reactivo.
+- En `src/java/com/jmunoz/sec05/assignment` creamos la clase `Assignment`.
+  - Es un ejercicio.
+- En `src/java/com/jmunoz/sec05/client` creamos un método en la clase `ExternalServiceClient` para usar en el ejercicio.

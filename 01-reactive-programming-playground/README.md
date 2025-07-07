@@ -793,3 +793,191 @@ En `Flux.generate()`, como solo se emite un item, no tiene sentido compartirlo c
 **Flux.generate()**
 
 - Permite crear una utilidad genérica.
+
+# Operators
+
+## Introducción
+
+![alt Operators](./images/10-OperatorsAreDecorators.png)
+
+Este ejemplo quiere decir:
+
+- Tenemos un expresso.
+- Si le añadimos agua, tenemos un americano.
+- Pero si le añadimos leche al vapor, tenemos un flat white.
+- ...
+
+Los operadores son como decoradores o ingredientes que añadimos para decorar nuestro publisher con comportamientos adicionales, basado en los requerimientos de negocio.
+
+Siempre que se añade un comportamiento adicional via operator, se devuelve una nueva instancia, un nuevo objeto Java publisher. Este nuevo objeto es al que nos tenemos que subscribir.
+
+Se llama pipeline a la cadena de operadores que se aplican a un publisher. La data fluye a través de este pipeline y finalmente llega al subscriber.
+
+Estos operators ya los hemos visto antes:
+
+- filter
+- map
+- log
+- take
+- takeWhile
+- takeUntil
+
+## Operator - Handle
+
+En `src/java/com/jmunoz/sec05` creamos la clase:
+
+- `Lec01Handle`
+  - Handle se comporta como un filter + map.
+
+## Operator - HandleUntil
+
+En `src/java/com/jmunoz/sec05` creamos la clase:
+
+- `Lec02HandleUntil`
+  - Ejemplo de uso de handle para filtrar hasta que se encuentre un elemento específico.
+
+## Do Hooks/Callbacks
+
+Hay una gran cantidad de operators do que se pueden usar, los más comunes son:
+
+- doOnNext
+- doOnSubscribe
+- doOnComplete
+- doOnError
+- doOnCancel
+- doFinally
+- doOnRequest
+- doFirst
+
+En `src/java/com/jmunoz/sec05` creamos la clase:
+
+- `Lec03DoCallbacks`
+  - Vemos ejemplos de como usar los callbacks doOnNext, doOnSubscribe, doOnComplete, doOnError, doOnCancel, doFinally, doOnRequest...
+
+## Operator - doOnNext - Clarificación
+
+En programación reactiva, el operador `doOnNext()` es algo que podemos usar dependiendo de nuestro caso de uso.
+
+Esto es porque muta la data, y en principio, no es lo mejor, pero todo depende del contexto. En concreto:
+
+- La inmutabilidad es buena, pero esto no significa que la mutación sea mala.
+- La programación funcional prefiere funciones puras (sin efectos secundarios).
+  - ¡Preferir funciones puras!
+
+Pero tener en cuenta que los objetos Entity son objetos mutables. Los arquitectos Java dicen que la mutación tiene sus ventajas si se sabe como usarla.
+
+```java
+interface CustomerRepository extends ReactiveCrudRepository<Customer, Long> {
+    Flux<Customer> findByFirstname(String firstname);
+    Mono<Customer> findById(Long id);
+}
+
+// Con programación clásica
+// Si la interface devuelve un Mono, esto no tiene mucho sentido porque Mono no es bloqueante, no sabemos cuando vamos a obtener Customer.
+var customer = this.repository.findById(123).get();
+customer.setAge(10);
+this.repository.save(customer);
+
+// Con programación reactiva
+this.repository.findById(123)
+    .doOnNext(customer -> customer.setAge(10))
+    .flatMap(this.repository::save);
+```
+
+Indicar que `findById()` devuelve un `Mono<Customer>`, no un Optional. Este Mono es un publisher, y ya sabemos que es no bloqueante.
+
+Esto significa que no sabemos cuando vamos a obtener el objeto Customer. En este caso el método `doOnNext()` es muy útil. Cuando obtenemos el valor, lo mutamos y luego lo guardamos.
+
+Project Reactor garantiza que internamente se sincroniza y la mutación es segura, hecha por un thread y no vendrá otro thread a mutar el mismo objeto al mismo tiempo.
+
+## Operator - Delay Elements
+
+En `src/java/com/jmunoz/sec05` creamos la clase:
+
+- `Lec04Delay`
+  - Vemos como retrasar la emisión de items usando el operador `delayElements()`.
+
+## Subscribe
+
+En `src/java/com/jmunoz/sec05` creamos la clase:
+
+- `Lec05Subscribe`
+  - Vemos los operadores doOnNext(), doOnComplete() y doOnError(), que se pueden usar en vez de indicar el subscriber en .subscribe().
+
+## Error Handling
+
+Esta es una clase muy importante.
+
+Vemos como manejar los errores en un pipeline reactivo, tanto Flux como Mono.
+
+En programación tradicional, tenemos el bloque try-catch para manejar excepciones. ¿Qué pasa en programación reactiva?
+
+En `src/java/com/jmunoz/sec05` creamos la clase:
+
+- `Lec06ErrorHandling`
+  - Vemos las formas de manejar errores en un flujo reactivo, valiendo igual para Mono que para Flux.
+  - `onErrorReturn`.
+  - `onErrorResume`.
+  - `onErrorComplete`.
+  - `onErrorContinue`.
+
+## Operator - Default If Empty
+
+En `src/java/com/jmunoz/sec05` creamos la clase:
+
+- `Lec07DefaultIfEmpty`
+  - Vemos como usar el operador `defaultIfEmpty()` para devolver un valor por defecto si el publisher no emite ningún item.
+
+## Operator - Switch If Empty
+
+En `src/java/com/jmunoz/sec05` creamos la clase:
+
+- `Lec08SwitchIfEmpty`
+  - Vemos como usar el operador `switchIfEmpty()` para cambiar a otro publisher si el publisher original no emite ningún item.
+
+## Operator - Timeout
+
+Vamos a hablar del operator `timeout`.
+
+En casos en que hacemos peticiones a servicios remotos, es importante saber que si no obtenemos una respuesta en un tiempo determinado, debemos manejar el timeout.
+
+Por ejemplo, esperamos 1sg para obtener la respuesta de un servicio remoto, pero si no obtenemos la respuesta en ese tiempo, vamos a asumir un valor por defecto.
+
+En `src/java/com/jmunoz/sec05` creamos la clase:
+
+- `Lec09Timeout`
+  - Vemos como usar el operador `timeout()` para manejar el timeout en un flujo reactivo.
+
+## Operator - Transform
+
+Este método nos ayuda a escribir código reutilizable en el pipeline reactivo.
+
+Igual que en POO consideramos todo un objeto, en programación reactiva todo el flujo de trabajo empresarial que construyamos será un publisher y un subscriber, donde la data fluirá de uno a otro.
+
+Podemos tener muchos requerimientos de flujos de trabajo empresariales, y muchas veces veremos que hay pasos redundantes en otros pipelines.
+
+Necesitamos una forma de poder reutilizar esos pasos entre todos los pipelines reactivos que construyamos. Usaremos el operador `transform()` para ello.
+
+El método `transform()` nos ayuda a construir estos pasos de forma separada.
+
+![alt Operator Transform](./images/11-OperatorTransform.png)
+
+Es muy parecido a decir que construimos un operator personalizado.
+
+En `src/java/com/jmunoz/sec05` creamos la clase:
+
+- `Lec10Transform`
+  - Vemos como usar el operador `transform()` para construir pasos reutilizables en un pipeline reactivo.
+
+## Ejercicio
+
+- Para este ejercicio, arrancar el proyecto `java -jar external-services.jar` e ir al navegador a `http://localhost:7070/webjars/swagger-ui/index.html`.
+- Usaremos los tres endpoints que existen en `demo03/`.
+
+En `src/java/com/jmunoz/sec05/assignment` creamo la clase:
+
+- `Assignment`
+
+En `src/java/com/jmunoz/sec05/client` creamos un método en la clase:
+
+- `ExternalServiceClient`
