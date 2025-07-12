@@ -974,10 +974,126 @@ En `src/java/com/jmunoz/sec05` creamos la clase:
 - Para este ejercicio, arrancar el proyecto `java -jar external-services.jar` e ir al navegador a `http://localhost:7070/webjars/swagger-ui/index.html`.
 - Usaremos los tres endpoints que existen en `demo03/`.
 
-En `src/java/com/jmunoz/sec05/assignment` creamo la clase:
+En `src/java/com/jmunoz/sec05/assignment` creamos la clase:
 
 - `Assignment`
 
 En `src/java/com/jmunoz/sec05/client` creamos un método en la clase:
+
+- `ExternalServiceClient`
+
+# Hot & Cold Publishers
+
+Vamos a hablar de dos publishers, `Hot` y `Cold`.
+
+En el concepto publisher/subscriber, se dijo que nada ocurre hasta que el subscriber se subscribe al publisher.
+
+Si dos subscriber se subscriben al mismo publisher, el publisher se comportará como dos publishers diferentes. Un Flux dará dos flujos de data independientes, uno para cada subscriber.
+
+Cada subscriber obtendrá su propia data. No existe conflicto entre ellos. Cada uno puede cancelar su suscripción sin afectar al otro.
+
+A esto se le llama `Cold publisher` y es lo más usado.
+
+Un ejemplo sería Netflix, donde tenemos flujos de video independientes para cada usuario.
+
+Sin embargo, en un `Hot publisher`, solo tenemos un publisher que produce la data para todos los subscribers. En algunos casos, ni siquiera necesitamos un subscriber para que el publisher emita la data.
+
+Se dijo que nada pasaba hasta que había un subscriber, pero en un `Hot publisher`, esta regla no aplica.
+
+Se usa para broadcasting.
+
+Un ejemplo sería un canal de televisión (o un cine), donde el canal emite la señal y cualquier usuario que se conecte al canal recibirá la señal. Si nadie se conecta da igual, el canal emite la señal igualmente.
+
+## Flux Sink - Issue Discussion
+
+En `src/java/com/jmunoz/sec06` creamos la clase:
+
+- `Lec01ColdPublisher`
+  - Vemos como crear un `Cold Publisher` usando `FluxSink`.
+
+## Hot Publisher
+
+En `src/java/com/jmunoz/sec06` creamos la clase:
+
+- `Lec02HotPublisher`
+  - Vemos como crear un `Hot Publisher` usando `share()`.
+  - Vemos `publish().refCount()` y cómo funciona.
+  - Vemos re-suscribirse a un `Hot Publisher` y cómo afecta a los subscribers.
+
+## Hot Publisher - Auto Connect
+
+En `src/java/com/jmunoz/sec06` creamos la clase:
+
+- `Lec03HotPublisherAutoConnect`
+  - Vemos como usar `autoConnect()`.
+
+## Hot Publisher - Replay / Cache
+
+En `src/java/com/jmunoz/sec06` creamos la clase:
+
+- `Lec04HotPublisherCache`
+  - Vemos como usar `replay()` para almacenar los items emitidos por un `Hot Publisher`.
+  - Con este se corrige un problema de `publish().autoConnect(0)`.
+
+## Flux Sink - Multiple Subscribers
+
+Conociendo la diferencia entre `Cold` y `Hot` publishers, ya sabemos por qué `Lec02FluxCreateRefactor` de `sec04` no funcionaba con varios subscribers.
+
+```java
+    public static void main(String[] args) {
+        var generator = new NameGenerator();
+        var flux = Flux.create(generator);
+        flux.subscribe(Util.subscriber());
+
+        for (int i = 0; i < 10; i++) {
+            generator.generate();
+        }
+    }
+```
+
+En `src/java/com/jmunoz/sec06` creamos la clase:
+
+- `Lec05FluxCreateIssueFix`
+  - Vemos como solucionar el problema de `Flux.create()` con varios subscribers.
+
+## Resumen
+
+Los métodos que usa Cold Publisher ya los hemos visto.
+
+![alt Métodos de Hot Publisher](./images/12-HotPublisherMethods.png)
+
+## Ejercicio
+
+![alt Ejercicio](./images/13-AssignmentSec06.png)
+
+- Order-Service provee un stream de pedidos. En la vida real, esto podría ser un topic Kafka o un stream Kafka, no importa. Para nosotros es un servicio externo que expone un endpoint para que podamos consumir ese stream de pedidos.
+  - Vemos que necesita mínimo 2 subscribers.
+  - El mensaje (cada pedido) tendrá el formato que aparece a su derecha, con item, category, price y quantity y será un texto plano que tendremos que parsear para extraer su información.
+- Tenemos dos servicios diferentes. En la vida real, esto serían dos aplicaciones diferentes, pero para nuestro ejercicio serán dos clases diferentes.
+  - Revenue-service está interesado en consumir el stream de pedidos, y por cada categoría obtendremos la ganancia obtenida, cuyo valor actualizará un Map (en la vida real sería una BD).
+    - Este servicio, además, expondrá su propio flujo de data para que lo puedan consumir otros servicios. Para nuestro ejercicio, cada 2sg se emitirá data y la imprimiremos por consola, indicando la categoría y su ganancia.
+  - Inventory-service está interesado en consumir el stream de pedidos, y cuando hay un pedido, reducirá la cantidad por categoría. La cantidad inicial la suponemos de 500 elementos por cada categoría. De nuevo, se actualiza un Java Map (en la vida real sería una BD).
+    - Este servicio, además, expondrá su propio flujo de data para que lo puedan consumir otros servicios. Para nuestro ejercicio, cada 2sg se emitirá data y la imprimiremos por consola, indicando la categoría y su cantidad restante.
+
+Cosas a tener en cuenta:
+
+- El campo item no lo usaremos, ya que no nos interesa.
+- El campo price se refiere al precio total, es decir, no hay que multiplicarlo por quantity.
+- El formato del mensaje del flujo de pedidos es: `"item:category:price:quantity"`, por ejemplo: `"item1:electronics:100.0:2"`.
+- Como inventario original supondremos 500 elementos por categoría. Hay que deducir la cantidad por categoría cada vez que se recibe un pedido.
+
+- Para este ejercicio, arrancar el proyecto `java -jar external-services.jar` e ir al navegador a `http://localhost:7070/webjars/swagger-ui/index.html`.
+- Usaremos el endpoint `demo04/orders/stream`.
+- Podemos probar a obtener la data desde el navegador como ejemplo: `http://localhost:7070/demo04/orders/stream`.
+
+En `src/java/com/jmunoz/sec06/assignment` creamos la clase:
+
+- `Assignment`
+- `Order`
+- `OrderProcessor` (interface)
+- `RevenueService`
+- `InventoryService`
+ 
+En `src/java/com/jmunoz/sec06/client` creamos un método en la clase:
 
 - `ExternalServiceClient`

@@ -439,3 +439,32 @@ Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `se
 - En `src/java/com/jmunoz/sec05/assignment` creamos la clase `Assignment`.
   - Es un ejercicio.
 - En `src/java/com/jmunoz/sec05/client` creamos un método en la clase `ExternalServiceClient` para usar en el ejercicio.
+
+## Hot & Cold Publishers
+
+Vamos a hablar de dos publishers, `Hot` y `Cold`.
+
+[README.md](./01-reactive-programming-playground/README.md)
+
+Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `sec06` donde están las siguientes clases:
+
+- `Lec01ColdPublisher`
+  - Vemos como crear un `Cold Publisher` usando `FluxSink`.
+- `Lec02HotPublisher`
+  - Vemos como crear un `Hot Publisher` usando `share()`.
+  - Vemos `publish().refCount()` y cómo funciona.
+  - Vemos re-suscribirse a un `Hot Publisher` y cómo afecta a los subscribers.
+- `Lec03HotPublisherAutoConnect`
+  - Vemos como usar `autoConnect()`.
+- `Lec04HotPublisherCache`
+  - Vemos como usar `replay()` para almacenar los items emitidos por un `Hot Publisher`.
+  - Con este se corrige un problema de `publish().autoConnect(0)`.
+- `Lec05FluxCreateIssueFix`
+  - Vemos como solucionar el problema de `Flux.create()` con varios subscribers.
+- En `src/java/com/jmunoz/sec06/assignment` creamos la clase `Assignment`.
+  - Es un ejercicio. También hacen falta:
+  - `Order`
+  - `OrderProcessor` (interface) 
+  - `RevenueService`
+  - `InventoryService`
+- En `src/java/com/jmunoz/sec06/client` creamos un método en la clase `ExternalServiceClient` para usar en el ejercicio.
