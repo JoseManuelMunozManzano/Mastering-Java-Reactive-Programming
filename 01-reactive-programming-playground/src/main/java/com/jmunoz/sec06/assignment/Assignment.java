@@ -2,8 +2,6 @@ package com.jmunoz.sec06.assignment;
 
 import com.jmunoz.common.Util;
 import com.jmunoz.sec06.client.ExternalServiceClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Assignment {
 

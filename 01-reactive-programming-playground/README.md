@@ -1097,3 +1097,170 @@ En `src/java/com/jmunoz/sec06/assignment` creamos la clase:
 En `src/java/com/jmunoz/sec06/client` creamos un método en la clase:
 
 - `ExternalServiceClient`
+
+# Threading & Schedulers
+
+Vamos a comprender el comportamiento predeterminado de un setup simple de Flux Publisher y Subscriber, abordando los problemas de bloqueo y la mejora del uso de hilos para optimizar el rendimiento en aplicaciones reactivas.
+
+## Publisher/Subscriber - Default Thread - Demo
+
+En `src/java/com/jmunoz/sec07` creamos la clase:
+
+- `Lec01DefaultBehaviorDemo`
+  - Vemos el comportamiento predeterminado de un Publisher y Subscriber, donde ambos usan el mismo hilo.
+
+## Schedulers
+
+En la clase anterior vimos que todo se ejecuta por defecto en el current thread.
+
+En algunos casos, no querremos este comportamiento. Por ejemplo, si tenemos 10 CPUs en nuestra máquina, ¿por qué todo el trabajo lo va a hacer el main thread? Querremos usar todas las CPUs.
+
+En la clase anterior vimos también que podemos crear un thread y usarlo para hacer el subscribe, con lo que ese thread hará todo el trabajo. Esto probablemente solucionaría el problema, pero no lo vamos a querer hacer así, porque crear el thread y gestionarlo es un tormento.
+
+Project Reactor provee un conjunto de thread pools optimizados para ciertos propósitos y que podemos usar. Se llaman `Schedulers` y son thread pool:
+
+![alt Schedulers](./images/14-Schedulers.png)
+
+Project Reactor también nos da herramientas para crear nuestros propios Schedulers.
+
+Para usar un Scheduler, Reactor provee dos operadores diferentes:
+
+![alt Operators for Schedulers](./images/15-OperatorsForScheduling.png)
+
+## Subscribe On
+
+Vamos a hablar del operador `subscribeOn()`, que nos permite cambiar el thread donde se ejecuta el subscriber.
+
+![alt SubscribeOn](./images/16-SubscribeOn.png)
+
+Vemos en la imagen de la izquierda que se usa el current thread para crear el objeto Flux con su pipeline reactivo y sus operators.
+
+Recordar que no es lo mismo crear el Flux que ejecutarlo, cosa que ocurre cuando nos subscribimos.
+
+Cuando en el current thread nos subscribimos al Flux, el flujo va de abajo a arriba (for upstream) y vemos el operator subscribeOn() el current thread dice: "Hey, yo no voy a hacer el trabajo, voy a delegar en otro thread pool (o scheduler)". Este scheduler es el que se pasa como parámetro al operador `subscribeOn()`.
+
+La imagen de la derecha muestra que el thread pool que se pasa al operador `subscribeOn()` es el que se usa para ejecutar el subscriber.
+
+En `src/java/com/jmunoz/sec07` creamos la clase:
+
+- `Lec02SubscribeOn`
+  - Vemos como usar el operador `subscribeOn()` para cambiar el thread donde se ejecuta el subscriber.
+
+## Multiple Subscribe On
+
+En `src/java/com/jmunoz/sec07` creamos la clase:
+
+- `Lec03MultipleSubscribeOn`
+  - Vemos que podemos usar varios operadores `subscribeOn()` en un pipeline reactivo, pero solo se ejecutará el más cercano a la fuente de datos (al producer).
+
+## Scheduler - Immediate
+
+Seguimos en la clase:
+
+- `Lec03MultipleSubscribeOn`
+  - Vemos que el operador `subscribeOn(Schedulers.immediate())` ejecuta el subscriber en el mismo thread donde se crea el objeto Flux, es decir, no cambia el thread.
+
+## Scheduler - Virtual Thread
+
+Project Reactor soporta Virtual Threads.
+
+Virtual Threads no se usa para tareas intensivas de CPU. Se usa para llamadas de red IO que consumen mucho tiempo, operaciones bloqueantes...
+
+Así que el thread pool `boundedElastic()` es el que se usa para Virtual Threads. Para poder usarla, hay que habilitar esta propiedad del sistema:
+
+`System.setProperty("reactor.schedulers.defaultBoundedElasticOnVirtualThreads", "true");`
+
+En `src/java/com/jmunoz/sec07` creamos la clase:
+
+- `Lec04VirtualThreads`
+  - Vemos como usar Virtual Threads con boundedElastic.
+
+## More on Schedulers
+
+Los schedulers no tienen nada que ver con que la ejecución sea en paralelo. De hecho el comportamiento por defecto es:
+
+- Todas las operaciones se ejecutan siempre secuencialmente.
+- La data se procesa una a una - por un thread del ThreadPool para un Subscriber.
+- Schedulers.parallel() es un thread pool para tareas intensivas de CPU, pero no significa que se ejecuten en paralelo.
+
+## Publish On
+
+Si somos los desarrolladores del publisher, tendremos conocimiento del lado del producer, y podremos escoger el mejor scheduler para el producer usando `subscribeOn()`.
+
+Así, hemos visto que podemos evitar que el subscriber cambie el scheduler.
+
+Sin embargo, quien hace el subscriber es el que pide la data y sabe como tiene que consumirla, por lo que debería poder cambiar el thread pool.
+
+¿Qué opciones tenemos? Aquí es donde entra el operador `publishOn()`, que nos permite cambiar el thread pool del producer.
+
+![alt PublishOn](./images/17-PublishOn.png)
+
+La parte de arriba corresponde al producer y la de abajo al subscriber, y `PublishOn()` es un operador que se añade al pipeline (donde queramos).
+
+El current thread hace el subscriber, y subirá y hará todas las operaciones como siempre (no hay subscribeOn()). Cuando llegue a `publishOn()` lo ignorará y continuará hasta llegar a la parte donde se produce la data. Es decir, el current thread producirá toda la data.
+
+Ahora empezará a bajar desde el producer y cuando llegue al operador `publishOn()`, el current thread dirá: "Vale, a partir de aquí, tú lo manejas en ese Scheduler" (for downstream). Y continúa hacia abajo hasta el subscriber.
+
+En `src/java/com/jmunoz/sec07` creamos la clase:
+
+- `Lec05PublishOn`
+  - Vemos como usar el operador `publishOn()` para cambiar el thread desde donde se ejecuta el producer hacia el subscriber (for downstream).
+  - Vemos también que se pueden usar varios operadores `publishOn()` en un pipeline reactivo.
+
+## Blocking Event Loop - Issue Fix
+
+En esta clase vamos a hablar de un problema y discutir su solución para poder comprender mejor la importancia de los Schedulers.
+
+- Arrancar el proyecto `java -jar external-services.jar` e ir al navegador a `http://localhost:7070/webjars/swagger-ui/index.html`.
+  - Usaremos el endpoint `demo01/product/{id}`, al que haremos algunas peticiones para ver como trabaja.
+
+En `src/java/com/jmunoz/sec07/client` creamos la clase:
+
+- `ExternalServiceClient`
+  - Implementamos el método `getProductById()` que hace una petición HTTP al servicio externo.
+
+En `src/java/com/jmunoz/sec07` creamos la clase:
+
+- `Lec06EventLoopIssueFix`
+  - Vemos el problema de bloqueo del Event Loop y como solucionarlo usando `subscribeOn()`.
+
+## Publish On + Subscribe On
+
+Hemos visto como funcionan tanto `subscribeOn()` (for upstream) como `publishOn()` (for downstream), pero ¿qué pasa si los usamos juntos?
+
+![alt PublishOn + SubscribeOn](./images/18-PublishOnAndSubscribeOn.png)
+
+Por supuesto. El comportamiento es el siguiente, imaginando que el main thread es el que ejecuta esto:
+
+- Empezamos desde el subscriber. El main thread se subscribe.
+- Subimos y ve subscribeOn con boundedElastic. BoundedElastic toma el testigo y continua.
+- Llegamos a publishOn y se lo salta.
+- Llegamos al publisher boundedElastic genera la data.
+- Bajamos y llegamos al publishOn. boundedElastic le pasa el testigo, digamos a parallel. Parallel toma la data.
+- Bajamos al subscriber ya ejecutando todo en el thread pool parallel.
+
+En `src/java/com/jmunoz/sec07` creamos la clase:
+
+- `Lec07PublishOnSubscribeOn`
+  - Vemos como usar ambos operadores `publishOn()` y `subscribeOn()` en un pipeline reactivo.
+
+## Parallel-execution
+
+Vamos a hablar de la ejecución en paralelo, procesamiento paralelo de items.
+
+![alt Parallel Execution](./images/19-ParallelExecution.png)
+
+Hasta ahora, hemos dicho que el comportamiento por defecto es un publisher que produce items y que son procesados secuencialmente, uno a uno, de forma segura.
+
+Esto es lo que querremos casi siempre.
+
+Si no queremos este comportamiento, sino que queremos procesar los items en paralelo, se puede hacer fácilmente usando un par de operadores:
+
+- parallel()
+- runOn() 
+
+En `src/java/com/jmunoz/sec07` creamos la clase:
+
+- `Lec08Parallel`
+  - Vemos como usar los operadores `parallel()` y `runOn()` para procesar los items en paralelo.
+  - También vemos el uso del operador `sequential()` para volver al comportamiento secuencial.

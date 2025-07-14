@@ -468,3 +468,33 @@ Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `se
   - `RevenueService`
   - `InventoryService`
 - En `src/java/com/jmunoz/sec06/client` creamos un método en la clase `ExternalServiceClient` para usar en el ejercicio.
+
+## Threading & Schedulers
+
+Vamos a comprender el comportamiento predeterminado de un setup simple de Flux Publisher y Subscriber, abordando los problemas de bloqueo y la mejora del uso de hilos para optimizar el rendimiento en aplicaciones reactivas.
+
+[README.md](./01-reactive-programming-playground/README.md)
+
+Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `sec07` donde están las siguientes clases:
+
+- `Lec01DefaultBehaviorDemo`
+  - Vemos el comportamiento predeterminado de un Publisher y Subscriber, donde ambos usan el mismo hilo.
+- `Lec02SubscribeOn`
+  - Vemos como usar el operador `subscribeOn()` para cambiar el thread desde donde se ejecuta el subscriber al publisher (for upstream).
+- `Lec03MultipleSubscribeOn`
+  - Vemos que podemos usar varios operadores `subscribeOn()` en un pipeline reactivo, pero solo se ejecutará el más cercano a la fuente de datos (al producer).
+  - Vemos que el operador `subscribeOn(Schedulers.immediate())` ejecuta el subscriber en el mismo thread donde se crea el objeto Flux, es decir, no cambia el thread.
+- `Lec04VirtualThreads`
+  - Vemos como usar Virtual Threads con boundedElastic.
+- `Lec05PublishOn`
+  - Vemos como usar el operador `publishOn()` para cambiar el thread desde donde se ejecuta el producer hacia el subscriber (for downstream).
+  - Vemos también que se pueden usar varios operadores `publishOn()` en un pipeline reactivo.
+- `Lec06EventLoopIssueFix`
+  - Vemos el problema de bloqueo del Event Loop y como solucionarlo usando `subscribeOn()`.
+  - Usamos también la clase `ExternalServiceClient` del package `client`.
+- `Lec07PublishOnSubscribeOn`
+  - Vemos como usar ambos operadores `publishOn()` y `subscribeOn()` en un pipeline reactivo.
+- `Lec08Parallel`
+  - Vemos como usar los operadores `parallel()` y `runOn()` para procesar los items en paralelo.
+  - También vemos el uso del operador `sequential()` para volver al comportamiento secuencial.
+
