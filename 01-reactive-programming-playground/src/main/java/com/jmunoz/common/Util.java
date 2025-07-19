@@ -32,6 +32,16 @@ public class Util {
         }
     }
 
+    // Para las pruebas de sec08/Lec04FluxCreate
+    public static void sleep(Duration duration) {
+        try {
+            // En Java 17, para que funcione: Thread.sleep(duration.toMillis());
+            Thread.sleep(duration);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     // Demo - no importante realmente.
     // Lo relevante es la creación de la instancia.
     public static void main(String[] args) {

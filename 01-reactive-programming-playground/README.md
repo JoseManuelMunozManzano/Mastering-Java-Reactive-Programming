@@ -1264,3 +1264,156 @@ En `src/java/com/jmunoz/sec07` creamos la clase:
 - `Lec08Parallel`
   - Vemos como usar los operadores `parallel()` y `runOn()` para procesar los items en paralelo.
   - También vemos el uso del operador `sequential()` para volver al comportamiento secuencial.
+
+# Back Pressure / Overflow Strategy
+
+Los flujos reactivos sabemos que tienen que ver con flujos no bloqueantes que se procesan de forma asíncrona con un mecanismo de backpressure.
+
+Vamos a hablar de backpressure y de las estrategias para manejarla.
+
+Indicar que estas estrategias puede que no sean aplicables en todas las aplicaciones.
+
+## Introducción
+
+Sabemos que el subscriber envía una petición al publisher por una cantidad de items que quiere recibir, y el publisher envía esa cantidad de items para que el subscriber la coonsuma.
+
+Si el subscriber necesita más items, envía otra petición al publisher usando el objeto subscription. Esto puede funcionar así por siempre o parar en algún momento.
+
+Puede pasar que el subscriber le pida toda la data al publisher, y este la emite, pero el subscriber no pueda consumirla tan rápido como el publisher la emite. A esto se le llama backpressure.
+
+![alt Backpressure](./images/20-backpressure.png)
+
+En esta imagen, el producer está a la izquierda y el subscriber a la derecha, con varios operators entre ellos. También hay varios schedulers threads (en naranja, rosa y gris). (Si todo ocurre en el main thread no hay problema de backpressure).
+
+Por ejemplo, en naranja tenemos un scheduler boundedElastic, en rosa un scheduler parallel y en gris un scheduler personalizado.
+
+Si imaginamos que el subscriber pide toda la data y el publisher emite 1000 items por segundo, pero la velocidad de procesamiento del subscriber es de solo 1 item por segundo, ¿qué pasa con los items que se generan conforme va pasando el tiempo? En la imagen vemos que se van acumulando en el scheduler naranja. A esto lo llamamos `backpressure`.
+
+Lo que se puede hacer es, o bien el publisher para de producir items en algún momento, o el subscriber incrementa su velocidad (esto último no va a ocurrir porque dependerá de la lógica de negocio).
+
+Lo mejor es que el publisher ajuste automáticamente su velocidad, dependiendo de la velocidad de procesamiento del subscriber. A esto se le llama `manejo de backpressure`.
+
+## Automatic Backpressure Handling
+
+En `src/java/com/jmunoz/sec08` creamos la clase:
+
+- `Lec01BackPressureHandling`
+  - Vemos como funciona el manejo automático de backpressure en Project Reactor.
+
+## Limit Rate
+
+En `src/java/com/jmunoz/sec08` creamos la clase:
+
+- `Lec02LimitRate`
+  - Vemos como usar el operador `limitRate()` para limitar la tasa de emisión de items por parte del publisher.
+
+## Backpressure con muchos subscribers
+
+En `src/java/com/jmunoz/sec08` creamos la clase:
+
+- `Lec03MultipleSubscribers`
+  - El publisher ajusta su velocidad de emisión de elementos según la velocidad de los subscribers.
+
+## Flux Create - Problema de Backpressure
+
+En `src/java/com/jmunoz/sec08` creamos la clase:
+
+- `Lec04FluxCreate`
+  - Vemos qué Flux.create() no maneja backpressure de forma automática.
+
+Vamos a empezar a ver qué estrategias provee Reactor para gestionar el problema de backpressure.
+
+![alt Backpressure Strategies](./images/21-backPressureStrategies.png)
+
+## Buffer Strategy
+
+Para implementar esta estrategia, usamos el operador `onBackpressureBuffer()`, que nos permite almacenar los items emitidos por el publisher en un buffer interno.
+
+![alt Backpressure Strategies - Buffer](./images/22-backPressureStreategies-Buffer.png)
+
+Recordar que un operador es un subscriber desde el punto de vista del publisher, y un publisher desde el punto de vista del subscriber.
+
+Por tanto, todo lo que produzca el publisher se da al operador y este empezará a acumular los items internamente en memoria. El subscriber irá obteniendo los items de este operador.
+
+Esta estrategia es útil cuando tenemos picos ocasionales del publisher al producir la data y la velocidad del subscriber es estable. Por ejemplo, si el publisher emite data de usuarios de una app, por el día habrá más usuarios que por la noche.
+
+Lo importante es que el subscriber al final pilla al publisher y consume toda la data, aunque sea más lento.
+
+En `src/java/com/jmunoz/sec08` creamos la clase:
+
+- `Lec05BackPressureStrategies`
+  - Vemos como usar el operador `onBackpressureBuffer()` para implementar la estrategia de buffer.
+
+## Error Strategy
+
+En esta estrategia, hay un operador que simplemente monitoriza y, si cree que el subscriber es demasiado lento y el producer está tratando de emitir muchos items, enviará una señal de error al flujo descendente (el que llega al subscriber) y una señal de cancelación al flujo ascendente (el que va al publisher) para que deje de emitirse data.
+
+![alt Backpressure Strategies - Error](./images/23-backPressureStreategies-Error.png)
+
+En `src/java/com/jmunoz/sec08` seguimos con la clase:
+
+- `Lec05BackPressureStrategies`
+  - Vemos como usar el operador `onBackpressureError()` para implementar la estrategia de error.
+
+## Fixed Size Buffer Strategy
+
+En esta estrategia, el operador `onBackpressureBuffer()` se configura con un tamaño fijo de buffer. Si el buffer se llena, se enviará una señal de error al flujo descendente y una señal de cancelación al flujo ascendente.
+
+Es una combinación de las estrategias de buffer y error.
+
+En `src/java/com/jmunoz/sec08` seguimos con la clase:
+
+- `Lec05BackPressureStrategies`
+  - Vemos como usar el operador `onBackpressureBuffer()` con un tamaño fijo de buffer para implementar la estrategia de buffer de tamaño fijo.
+
+## Drop Strategy
+
+En esta estrategia, el operador `onBackpressureDrop()` simplemente descarta los items que no se pueden procesar en el momento. Es decir, si el subscriber es lento y el publisher está emitiendo muchos items, los items que no se pueden procesar se descartan.
+
+![alt Backpressure Strategies - Drop](./images/24-backPressureStreategies-Drop.png)
+
+Este operador trata de monitorizar el balance entre la velocidad de emisión del publisher y la velocidad de procesamiento del subscriber, y si ve que el subscriber es lento, descarta los items que no se pueden procesar.
+
+Ejemplo: El subscriber hace una petición de 2 elementos, pero el publisher emite 20. El operador pasa los 2 elementos al subscriber y descarta los 18 restantes, innecesarios por no haber sido pedidos.
+
+En `src/java/com/jmunoz/sec08` seguimos con la clase:
+
+- `Lec05BackPressureStrategies`
+  - Vemos como usar el operador `onBackpressureDrop()` para implementar la estrategia de descarte de items.
+
+## Latest Strategy
+
+En esta estrategia, el operador `onBackpressureLatest()` simplemente descarta todos los items que no se pueden procesar en el momento y solo mantiene el último item emitido por el publisher.
+
+Es parecido a la estrategia de drop, pero en este caso se mantiene el último item emitido por el publisher.
+
+Es decir, si el subscriber hace una petición de 2 elementos, pero el publisher emite 20, el operador pasa 2 elementos al subscriber y descarta 17, pero el elemento 20 lo mantiene.
+
+Si ahora el subscriber vuelve a hacer una petición de 2 elementos, el operador pasará el elemento 20 y el 21, y descartará el resto salvo el 40.
+
+En `src/java/com/jmunoz/sec08` seguimos con la clase:
+
+- `Lec05BackPressureStrategies`
+  - Vemos como usar el operador `onBackpressureLatest()` para implementar la estrategia de mantener el último item emitido por el publisher.
+
+## Flux Create - Overflow Strategy
+
+`Flux.create()` tiene un parámetro opcional más llamado `overflowStrategy`, que nos permite definir la estrategia de manejo de backpressure. Es un enum.
+
+Es útil si queremos usar una estrategia para todos los subscribers.
+
+En `src/java/com/jmunoz/sec08` seguimos con la clase:
+
+- `Lec05BackPressureStrategies`
+  - Vemos como usar el parámetro `OverflowStrategy` en `Flux.create()` para definir la estrategia de manejo de backpressure.
+
+## Resumen
+
+Estas son las estrategias de backpressure que hemos visto cuando se usa `Flux.create()`:
+
+- buffer: mantiene los items en memoria.
+- error: notifica que el flujo de bajada es muy lento.
+- drop: descarta los items una vez que la cola interna está llena o descarta items no requeridos.
+- latest: como drop, pero mantiene el último item emitido por el publisher.
+
+Recordar que `Flux.generate()` maneja backpressure de forma automática.

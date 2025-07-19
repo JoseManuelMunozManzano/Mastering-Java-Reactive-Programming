@@ -498,3 +498,28 @@ Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `se
   - Vemos como usar los operadores `parallel()` y `runOn()` para procesar los items en paralelo.
   - También vemos el uso del operador `sequential()` para volver al comportamiento secuencial.
 
+## Back Pressure / Overflow Strategy
+
+Los flujos reactivos sabemos que tienen que ver con flujos no bloqueantes que se procesan de forma asíncrona con un mecanismo de backpressure.
+
+Vamos a hablar de backpressure y de las estrategias para manejarla.
+
+[README.md](./01-reactive-programming-playground/README.md)
+
+Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `sec08` donde están las siguientes clases:
+
+- `Lec01BackPressureHandling`
+  - Vemos como funciona el manejo automático de backpressure en Project Reactor.
+- `Lec02LimitRate`
+  - Vemos como usar el operador `limitRate()` para limitar la tasa de emisión de items por parte del publisher.
+- `Lec03MultipleSubscribers`
+  - El publisher ajusta su velocidad de emisión de elementos según la velocidad de los subscribers.
+- `Lec04FluxCreate`
+  - Vemos qué Flux.create() no maneja backpressure de forma automática.
+- `- `Lec05BackPressureStrategiesBuffer`
+  - Vemos como usar el operador `onBackpressureBuffer()` para implementar la estrategia de buffer.
+  - Vemos como usar el operador `onBackpressureError()` para implementar la estrategia de error.
+  - Vemos como usar el operador `onBackpressureBuffer()` con un tamaño fijo de buffer para implementar la estrategia de buffer de tamaño fijo.
+  - Vemos como usar el operador `onBackpressureDrop()` para implementar la estrategia de descarte de items.
+  - Vemos como usar el operador `onBackpressureLatest()` para implementar la estrategia de mantener el último item emitido por el publisher.
+  - Vemos como usar el parámetro `OverflowStrategy` en `Flux.create()` para definir la estrategia de manejo de backpressure.
