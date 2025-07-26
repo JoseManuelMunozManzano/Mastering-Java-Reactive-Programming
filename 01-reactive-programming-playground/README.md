@@ -1417,3 +1417,369 @@ Estas son las estrategias de backpressure que hemos visto cuando se usa `Flux.cr
 - latest: como drop, pero mantiene el último item emitido por el publisher.
 
 Recordar que `Flux.generate()` maneja backpressure de forma automática.
+
+# Combining Publishers
+
+Vamos a ver como combinar varios publishers en uno.
+
+## Introducción
+
+En muchos programas, como por ejemplo Amazon, la información no proviene solo de una BD, sino que la información se obtiene a través de varias llamadas a servicios.
+
+Cuando obtenemos una petición del front, llamaremos a varios servicios del backend, obtendremos la respuesta, agregaremos la información y la devolveremos al front.
+
+Hasta ahora, hemos hablado de operaciones Mono y Flux, pero en la vida real, dada una petición, tendremos que hacer varias peticiones, algunas serán Mono y otras Flux.
+
+¿Qué tipo de opciones provee Reactor para hacer estas peticiones IO en un orden específico para conseguir los requerimientos de negocio? Esto es lo que vamos a ver en esta sección.
+
+Las opciones (u operadores) que provee Reactor (no exhaustivo) para hacer las peticiones IO en un orden específico, son:
+
+- startWith
+- concat
+- merge
+- zip
+- flatMap
+- concatMap
+
+## Start With
+
+![alt Start With](./images/25-startWith.png)
+
+La forma en que funciona este operador es la siguiente:
+
+Imaginemos que tenemos dos publishers, 1 y 2, y ambos devuelven un tipo Flux<T>, siendo T cualquier objeto.
+
+Usando el operador `startWith()`, podemos conectar estos dos publishers como uno solo y exponer solo un publisher a nuestro subscriber.
+
+Desde el punto de vista del subscriber, él solo se subscribe a un publisher que devuelve un tipo Flux<T>.
+
+Cuando nos subscribimos, la forma de trabajar es la siguiente:
+
+- Siempre intentará consumir el publisher 1 primero.
+- Cuando el publisher 1 complete, se consumirán los items del publisher 2.
+  - Por ejemplo, el subscriber hace una petición de 6 elementos y el publisher 1 emite 5 elementos y el publisher 2 emite 10 elementos.
+  - Del publisher 1 se consumirán los 5 elementos y del publisher 2 se consumirá el elementos faltante.
+- Si se completan los dos publishers sin haber satisfecho la petición del subscriber, se enviará una señal de complete.
+
+En `src/java/com/jmunoz/sec09` creamos la clase:
+
+- `Lec01StartWith`
+  - Vemos como usar el operador `startWith()` para combinar dos publishers en uno solo.
+
+## Start With - Usecases
+
+Vamos a ver usos reales del operador `startWith()`.
+
+En `src/java/com/jmunoz/sec09` creamos la clase:
+
+- `Lec02StartWithUseCase`
+  - Vemos un ejemplo de uso del operador `startWith()` en un caso real.
+
+En `src/java/com/jmunoz/sec09/helper` creamos la clase:
+
+- `NameGenerator`
+  - Esta clase es un generador de nombres que emite nombres aleatorios.
+  - Usa una caché para evitar el consumo de tiempo de computación (es muy pesado)
+  - Usamos `startWith()` para recuperar primero los nombres de la caché.
+  - Si con eso no satisfacemos la demanda del subscriber, se siguen generando nombres aleatorios.
+
+## Concat With
+
+![alt Concat With](./images/26-concatWith.png)
+
+Funciona al contrario de `startWith()`.
+
+En este caso, el publisher 1 se consume primero y luego el publisher 2, según el dibujo.
+
+En `src/java/com/jmunoz/sec09` creamos la clase:
+
+- `Lec03ConcatWith`
+  - Vemos como usar los operadores `concatWithValues()` y `concatWith()`, y el factory method `Flux.concat()` para combinar dos publishers en uno solo.
+
+## Concat Delay Error
+
+¿Qué pasa en caso de error al usar `concatWith()`? Es decir, si el producer 1 emite una señal de error ¿se consumirá el producer 2?
+
+Vemos en el ejemplo que, usando `concatWith()` no se emiten elementos una vez se emite una señal de error.
+
+Sin embargo, existe la posibilidad, también mostrada en el ejemplo, usando `concatDelayError()`, de que se emitan los elementos del segundo publisher aunque el primero emita una señal de error.
+
+En `src/java/com/jmunoz/sec09` creamos la clase:
+
+- `Lec04ConcatError`
+  - Vemos que, usando `concatWith()` no se emiten elementos una vez se emite una señal de error.
+  - Vemos como usar el operador `concatDelayError()` para que se completen los elementos de los publishers antes de emitir una señal de error.
+
+## Merge
+
+![alt Merge](./images/27-merge.png)
+
+Imaginemos que tenemos tres publishers. Podemos usar el operador `merge()` para combinarlos en uno solo. El subscriber se subscribe a este publisher combinado, a todos los publishers a la vez.
+
+En ese caso, ¿en qué orden recibirá los elementos el subscriber? El publisher que emita primero será el item que reciba el subscriber. No hay un orden específico.
+
+Si enviamos una señal de cancelación, se cancelarán todos los publishers a la vez.
+
+Primero haremos ejemplos sencillos para entender su funcionamiento, y en una siguiente clase veremos casos de uso reales.
+
+En `src/java/com/jmunoz/sec09` creamos la clase:
+
+- `Lec05Merge`
+  - Vemos como usar el operador `merge()` y `mergeWith()` para combinar varios publishers en uno solo.
+  - No se garantiza el orden de los elementos emitidos por los publishers.
+
+## Merge - Usecases
+
+¿Cuál sería un caso de uso real del operador `merge()`? Imaginemos aplicaciones de vuelos, de reserva de billetes. Cuando el usuario busca un vuelo, puede que tenga que llamar a varias compañías aéreas para obtenerlo.
+
+Cada compañía aérea es un producer y el subscriber manda solicitudes de vuelo a cada compañía a la vez, por lo que `merge()` es la mejor opción.
+
+El primero que devuelva una respuesta se comunicará al usuario.
+
+Vamos a implementar este funcionamiento para ver como funcionaría. Esperaremos como mucho 2sg a una respuesta.
+
+En `src/java/com/jmunoz/sec09/helper` creamos el record:
+
+- `Flight`
+  - Es un record que representa un vuelo.
+- `Emirates`
+- `Qatar`
+- `AmericanAirlines`
+  - Son publishers que emiten vuelos de esas compañías.
+- `Kayak`
+  - Clase de servicio que combina los publishers de las compañías aéreas usando `merge()`.
+  - Esperamos como mucho 2sg a una respuesta.
+
+En `src/java/com/jmunoz/sec09` creamos la clase:
+
+- `Lec06MergeUseCase`
+  - Vemos como usar el operador `merge()` en un caso de uso real, combinando varios publishers de compañías aéreas para obtener un vuelo.
+
+## Zip
+
+El operador `zip()` es parecido a `merge()`, pero con una diferencia importante: `zip()` necesita que todos los publishers emitan un elemento antes de ensamblar esos elementos y emitirlo a un subscriber.
+
+![alt Zip](./images/28-zip.png)
+
+Como ejemplo para entender su funcionamiento, imaginemos que tenemos una cadena de construcción de coches, y nuestro subscriber quiere uno.
+
+No tenemos ningún producer que nos pueda dar un Flux<Coche>, pero tenemos tres producers que nos dan las partes del coche que necesitamos, como el motor, las ruedas y la carrocería.
+
+Usando `zip()` podemos conseguir esas partes, montar el objeto coche y devolverlo al subscriber.
+
+Pero tenemos que tener en cuenta que un producer podría producir varias carrocerías, unas tres por segundo, mientras que el producer de motores solo puede producir un motor cada segundo y el producer de ruedas solo puede producirlas cada cinco segundos. 
+
+Es decir, la construcción del objeto coche solo funcionará cuando todos los producers hayan emitido un elemento, y tendremos que esperar a que lo emitan.
+
+Es decir, es todo o nada. O todos los producers nos dan lo que necesitamos para construir el objeto coche, o no lo conseguimos.
+
+En `src/java/com/jmunoz/sec09` creamos la clase:
+
+- `Lec07Zip`
+  - Vemos como usar el operador `zip()` para combinar varios publishers en uno solo, ensamblando los elementos emitidos por cada publisher.
+
+## Zip - Assignment
+
+Al igual que existe `Flux.zip()`, también existe `Mono.zip()`, que funciona de la misma forma, salvo que solo se podrá construir un objeto porque cada producer emitirá 0 o 1 elemento.
+
+![alt Zip Assignment](./images/29-zipAssignment.png)
+
+Volvemos a nuestro servicio externo.
+
+- Arrancar el proyecto `java -jar external-services.jar` e ir al navegador a `http://localhost:7070/webjars/swagger-ui/index.html`.
+  - Usaremos los endpoint `demo05/price/{id}`, `demo05/product/{id}` y `demo05/review/{id}`.
+
+En el front tendremos una petición para obtener la información de un producto con id 1. Tendremos que llamar a cada uno de los endpoints y combinar la información en un solo objeto.
+
+El objetivo es subscribirse, obtener toda la información, agregarla y devolverla al front.
+
+Así podemos ponerlo en práctica:
+
+```java
+var client = new ExternalServiceClient();
+
+client.getProduct(1);    // should return Mono<Product>
+
+for (int i = 0; i <= 10; i++) {
+    client.getProduct(i) 
+        .subscribe(Util.subscriber());
+}
+```
+
+En `src/java/com/jmunoz/sec09/client` creamos la clase:
+
+- `ExternalServiceClient`
+  - Llamamos a los endpoints `price`, `product` y `review` para obtener la información del producto.
+
+En `src/java/com/jmunoz/sec09/assignments` creamos:
+- `Product`
+  - Es un record que representa un producto con sus campos `id`, `name`, `price` y `review`.
+
+En `src/java/com/jmunoz/sec09` creamos la clase:
+
+- `Lec08ZipAssignment`
+  - Implementamos el método `getProduct()` que combina los publishers de los endpoints `price`, `product` y `review` usando `Mono.zip()`.
+
+## FlatMap - Introducción
+
+Durante las siguientes clases, vamos a ver como usar `flatMap()`. Es muy parecido al stream de Java `flatMap()`.
+
+Hasta ahora hemos visto producers independientes cuyos items hemos combinado usando:
+
+- startWith
+- concat
+- merge
+- zip
+
+Pero, ¿qué hay de llamadas secuenciales dependientes? Los comandos listados arriba no nos van a servir.
+
+Este es un ejemplo:
+
+- Given
+  - User Service
+    - get user id para un nombre
+    - get all users
+  - Payment Service
+    - get user balance pra el user id
+  - Order Service
+    - get user orders para el user id
+- Scenario
+  - Tengo un nombre. Necesito sus pedidos.
+
+Tenemos tres microservicios, cada uno con sus endpoints y nos dan el requerimiento de obtener los pedidos de un usuario a partir de su nombre.
+
+Tenemos que hacer llamadas secuenciales a los servicios, donde cada llamada depende de la anterior.
+
+Vemos como resolverlo.
+
+En `src/java/com/jmunoz/sec09/applications` creamos:
+
+- `User`
+  - Es un record que representa un usuario con sus campos `id` y `username`.
+- `UserService`
+  - Es un servicio que obtiene el id de un usuario a partir de su nombre y obtiene todos los usuarios.
+- `Order`
+  - Es un record que representa un pedido con sus campos `id`, `userId` y `amount`.
+- `OrderService`
+  - Es un servicio que obtiene los pedidos de un usuario a partir de su id.
+- `PaymentService`
+  - Es un servicio que obtiene el balance de un usuario a partir de su id.
+
+En `src/java/com/jmunoz/sec09` creamos la clase:
+
+- `Lec09MonoFlatMap`
+  - Vemos como usar el operador `flatMap()` para hacer llamadas secuenciales a los servicios y obtener los pedidos de un usuario a partir de su nombre.
+
+## Mono - FlatMapMany
+
+En `src/java/com/jmunoz/sec09` creamos la clase:
+
+- `Lec10MonoFlatMapMany`
+  - Vemos como usar el operador `flatMapMany()` para poder trabajar con un publisher interno que emite varios elementos (Flux), en lugar de uno solo (Mono).
+
+## Flux - flatMap
+
+El operador que se usa para Mono es el mismo que se usa para Flux.
+
+En `src/java/com/jmunoz/sec09` creamos la clase:
+
+- `Lec11FluxFlatMap`
+  - Vemos como usar el operador `flatMap()` cuando el publisher externo es un Flux, y el publisher interno es un Mono o un Flux.
+
+## FlatMap - Cómo funciona
+
+En la clase anterior vimos como el operador `flatMap()` intentaba subscribirse a todos los publishers internos a la vez.
+
+¿Por qué se comporta así?
+
+Imaginemos que tenemos este flujo:
+
+![alt FlatMap How](./images/30-flatMap-ComoFunciona.png)
+
+Las cajas representan Flux de id de usuarios y luego tenemos el operador `flatMap()`.
+
+Lo que se espera es que este operador tome el id de usuario y haga una llamada de red a OrderService para obtener los pedidos de ese usuario.
+
+Imaginemos que llega el id de usuario 1. El operador `flatMap()` toma el id de usuario 1 y hace la petición a OrderService para obtener los pedidos de ese usuario.
+
+![alt FlatMap How 2](./images/31-flatMap-ComoFunciona-2.png)
+
+Hemos dicho que es un `Flux<Order>`, con potencialmente stream de pedidos infinitos. ¿Cuándo acaba? ¿Debemos esperar eternamente a que el flujo se complete para recoger el id de usuario 2?
+
+Ese es el problema.
+
+La solución es que el operador `flatMap()` no espera a que el flujo se complete, sino que cuando llega un elemento, inmediatamente enviará otra solicitud y se subscribirá a ese flujo inmediatamente.
+
+![alt FlatMap How 3](./images/32-flatMap-ComoFunciona-3.png)
+
+Es decir, llega el id de usuario 1, se crea el Flux y se subscribe. Luego, llega el id de usuario 2, se crea otro Flux y se subscribe a ese flujo inmediatamente.
+
+Es decir, cuando llegue un elemento, creará todos los Flux internos y se subscribirá a todos ellos al mismo tiempo.
+
+Este comportamiento es muy parecido al de `merge()`, donde se subscribía a todos los publishers al mismo tiempo.
+
+![alt FlatMap How 4](./images/33-flatMap-ComoFunciona-4.png)
+
+Entonces, si podemos enviar solicitudes múltiples concurrentes, ¿cuántas solicitudes podemos enviar, cuál es su límite? Actualmente unas 256. Este valor viene de la cola interna que crea Reactor, y puede variar en el futuro.
+
+Sin embargo, flatMap() acepta un parámetro opcional llamado `concurrency`, que nos permite definir el número máximo de solicitudes concurrentes que se pueden enviar.
+
+En `src/java/com/jmunoz/sec09` seguimos con la clase:
+
+- `Lec11FluxFlatMap`
+  - Vemos como usar el parámetro `concurrency` en el operador `flatMap()` para limitar el número máximo de solicitudes concurrentes que se pueden enviar.
+
+## FlatMap - Assignment
+
+Volvemos a nuestro servicio externo.
+
+- Arrancar el proyecto `java -jar external-services.jar` e ir al navegador a `http://localhost:7070/webjars/swagger-ui/index.html`.
+  - Usaremos los endpoint `demo05/price/{id}`, `demo05/product/{id}` y `demo05/review/{id}`.
+
+En `src/java/com/jmunoz/sec09` creamos la clase:
+
+- `Lec12FluxFlatMapAssignment`
+  - Es un ejercicio que, cogiendo `Lec08ZipAssignment`, lo convierte en un ejercicio de `flatMap()` usando Flux.
+
+## ConcatMap
+
+![alt ConcatMap](./images/34-concatMap.png)
+
+Al igual que `flatMap()`, el operador `concatMap()` también se usa para hacer llamadas secuenciales a los servicios, pero con una diferencia importante: `concatMap()` garantiza que los elementos se procesen en el orden en que se reciben, secuencialmente.
+
+Es decir, una vez nos subscribimos a un Flux interno, se espera a que se complete antes de procesar el siguiente Flux.
+
+Tarda más que `flatMap()`, pero garantiza el orden de los elementos.
+
+- Arrancar el proyecto `java -jar external-services.jar` e ir al navegador a `http://localhost:7070/webjars/swagger-ui/index.html`.
+  - Usaremos los endpoint `demo05/price/{id}`, `demo05/product/{id}` y `demo05/review/{id}`.
+
+En `src/java/com/jmunoz/sec09` creamos la clase:
+
+- `Lec13ConcatMap`
+  - Vemos como usar el operador `concatMap()` para hacer llamadas secuenciales a los servicios, garantizando que los elementos se procesen en el orden en que se reciben.
+
+## Operator - Collect List
+
+En `src/java/com/jmunoz/sec09` creamos la clase:
+
+- `Lec14CollectList`
+  - Vemos como usar el operador `collectList()` para recoger todos los elementos emitidos por un Flux y devolverlos como una lista.
+
+## Operator - Then
+
+- Usado cuando no estamos interesados en el resultado de un producer / encadenar varias llamadas asíncronas para ejecutar solo una.
+- Por ejemplo:
+  - Insertamos un puñado de registros en una BD. Solo necesitamos saber si se han insertado correctamente o no, pero no los resultados intermedios.
+
+En `src/java/com/jmunoz/sec09` creamos la clase:
+
+- `Lec15Then`
+  - Vemos como usar el operador `then()` para encadenar varias llamadas asíncronas y ejecutar solo una.
+
+## Assignment
+
+En `src/java/com/jmunoz/sec09` creamos la clase:
+
+- `Lec16Assignment`
+  - Obtener todos los usuarios y construir un objeto combinando distintos resultados.

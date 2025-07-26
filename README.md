@@ -523,3 +523,79 @@ Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `se
   - Vemos como usar el operador `onBackpressureDrop()` para implementar la estrategia de descarte de items.
   - Vemos como usar el operador `onBackpressureLatest()` para implementar la estrategia de mantener el último item emitido por el publisher.
   - Vemos como usar el parámetro `OverflowStrategy` en `Flux.create()` para definir la estrategia de manejo de backpressure.
+
+## Combining Publishers
+
+Vamos a ver como combinar varios publishers en uno.
+
+[README.md](./01-reactive-programming-playground/README.md)
+
+Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `sec09` donde están las siguientes clases:
+
+- `Lec01StartWith`
+  - Vemos como usar el operador `startWith()` para combinar dos publishers en uno solo.
+- `Lec02StartWithUseCase`
+  - Vemos un ejemplo de uso del operador `startWith()` en un caso real.
+- En `src/java/com/jmunoz/sec09/helper` creamos la clase:
+  - `NameGenerator`
+    - Esta clase es un generador de nombres que emite nombres aleatorios.
+    - Usa una caché para evitar el consumo de tiempo de computación (es muy pesado)
+    - Usamos `startWith()` para recuperar primero los nombres de la caché.
+    - Si con eso no satisfacemos la demanda del subscriber, se siguen generando nombres aleatorios.
+- `Lec03ConcatWith`
+  - Vemos como usar los operadores `concatWithValues()` y `concatWith()`, y el factory method `Flux.concat()` para combinar dos publishers en uno solo.
+- `Lec04ConcatError`
+  - Vemos que, usando `concatWith()` no se emiten elementos una vez se emite una señal de error.
+  - Vemos como usar el operador `concatDelayError()` para que se completen los elementos de los publishers antes de emitir una señal de error.
+- `Lec05Merge`
+  - Vemos como usar el operador `merge()` y `mergeWith()` para combinar varios publishers en uno solo.
+  - No se garantiza el orden de los elementos emitidos por los publishers.
+- En `src/java/com/jmunoz/sec09/helper` creamos el record:
+  - `Flight`
+    - Es un record que representa un vuelo.
+  - `Emirates`
+  - `Qatar`
+  - `AmericanAirlines`
+    - Son publishers que emiten vuelos de esas compañías.
+  - `Kayak`
+    - Clase de servicio que combina los publishers de las compañías aéreas usando `merge()`.
+    - Esperamos como mucho 2sg a una respuesta.
+- En `src/java/com/jmunoz/sec09` creamos la clase:
+  - `Lec06MergeUseCase`
+    - Vemos como usar el operador `merge()` en un caso de uso real, combinando varios publishers de compañías aéreas para obtener un vuelo.
+- `Lec07Zip`
+  - Vemos como usar el operador `zip()` para combinar varios publishers en uno solo, ensamblando los elementos emitidos por cada publisher.
+- En `src/java/com/jmunoz/sec09/client` creamos la clase:
+  - `ExternalServiceClient`
+    - Llamamos a los endpoints `price`, `product` y `review` para obtener la información del producto.
+- En `src/java/com/jmunoz/sec09` creamos la clase:
+  - `Lec08ZipAssignment`
+    - Implementamos el método `getProduct()` que combina los publishers de los endpoints `price`, `product` y `review` usando `Mono.zip()`.
+- En `src/java/com/jmunoz/sec09/applications` creamos:
+  - `User`
+    - Es un record que representa un usuario con sus campos `id` y `username`.
+  - `UserService`
+    - Es un servicio que obtiene el id de un usuario a partir de su nombre y obtiene todos los usuarios.
+  - `Order`
+    - Es un record que representa un pedido con sus campos `id`, `userId` y `amount`.
+  - `OrderService`
+    - Es un servicio que obtiene los pedidos de un usuario a partir de su id.
+  - `PaymentService`
+    - Es un servicio que obtiene el balance de un usuario a partir de su id.
+      En `src/java/com/jmunoz/sec09` creamos la clase:
+- `Lec09MonoFlatMap`
+  - Vemos como usar el operador `flatMap()` para hacer llamadas secuenciales a los servicios y obtener los pedidos de un usuario a partir de su nombre.
+- `Lec10MonoFlatMapMany`
+  - Vemos como usar el operador `flatMapMany()` para poder trabajar con un publisher interno que emite varios elementos (Flux), en lugar de uno solo (Mono).
+- `Lec11FluxFlatMap`
+  - Vemos como usar el operador `flatMap()` cuando el publisher externo es un Flux, y el publisher interno es un Mono o un Flux.
+- `Lec12FluxFlatMapAssignment`
+  - Es un ejercicio que, cogiendo `Lec08ZipAssignment`, lo convierte en un ejercicio de `flatMap()` usando Flux.
+- `Lec13ConcatMap`
+  - Vemos como usar el operador `concatMap()` para hacer llamadas secuenciales a los servicios, garantizando que los elementos se procesen en el orden en que se reciben.
+- `Lec14CollectList`
+  - Vemos como usar el operador `collectList()` para recoger todos los elementos emitidos por un Flux y devolverlos como una lista.
+- `Lec15Then`
+  - Vemos como usar el operador `then()` para encadenar varias llamadas asíncronas y ejecutar solo una.
+- `Lec16Assignment`
+  - Obtener todos los usuarios y construir un objeto combinando distintos resultados.
