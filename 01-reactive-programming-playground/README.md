@@ -1489,7 +1489,7 @@ En `src/java/com/jmunoz/sec09/helper` creamos la clase:
 
 Funciona al contrario de `startWith()`.
 
-En este caso, el publisher 1 se consume primero y luego el publisher 2, según el dibujo.
+En este caso, el publisher 1 se consume primero y luego el publisher 2, según el dibujo. Es decir, es perezoso en el sentido de que no se consume el publisher 2 hasta que se completa el publisher 1.
 
 En `src/java/com/jmunoz/sec09` creamos la clase:
 
@@ -1783,3 +1783,140 @@ En `src/java/com/jmunoz/sec09` creamos la clase:
 
 - `Lec16Assignment`
   - Obtener todos los usuarios y construir un objeto combinando distintos resultados.
+
+# Batching / Windowing / Grouping
+
+Esta sección será muy útil si planeamos usar programación reactiva para Kafka, RabbitMQ, Pulsar..., donde se consume un topic para mensajes, o donde se recibe un flujo de items y un flujo interminable de mensajes.
+
+## Introducción
+
+- Asunción
+  - Usamos Kafka/RabbitMQ/Pulsar...
+  - Hay un Flux<T> - stream interminable de mensajes.
+- Operadores
+  - buffer
+  - window
+  - group
+
+## Buffer
+
+Vamos a hablar del operador `buffer()`, que nos permite agrupar los elementos emitidos por un Flux en una lista y dárselos al subscriber.
+
+![alt Buffer Operator](./images/35-bufferOperator.png)
+
+Imaginemos que tenemos un publisher que emite artículos a un ritmo muy rápido, como eventos de clic de usuario.
+
+Nos interesa recoger todos esos eventos, por ejemplo, para mejorar el negocio.
+
+Suponemos que todos esos eventos son recogidos por un topic de Kafka.
+
+Supongamos, por último, que el item recibido tenemos que guardarlo en una BD.
+
+Si recibimos los items muy rápido, no vamos a poder insertarlos uno a uno, no va a ser eficiente.
+
+Lo que podemos hacer es recoger estos items basados en un intervalo cada 5 segundos.
+
+Por tanto, coleccionamos esos items cada 5 segundos y los ponemos en una lista, y luego insertamos esa lista en la BD.
+
+En `src/java/com/jmunoz/sec10` creamos la clase:
+
+- `Lec01Buffer`
+  - Vemos como usar el operador `buffer()` para recoger los elementos emitidos por un Flux en una lista, y luego procesar esa lista.
+
+## Buffer - Assignment
+
+![alt Buffer Assignment](./images/36-bufferAssignment.png)
+
+Para este ejercicio, vamos a crear nuestro propio stream de pedidos de libros, y vamos a obtener un objeto de pedido de libros cada 200ms.
+
+El negocio está interesado en géneros como science fiction, fantasy, suspense/thriller, y quieren un informe cada 5 segundos de la ganancia obtenida.
+
+En `src/java/com/jmunoz/sec10/assignment/buffer` creamos la clase:
+
+- `BookOrder`
+  - Es un record que representa un pedido de libro con sus campos `genre`, `title` y `price`.
+- `RevenueReport`
+  - Es un record que representa un informe de ingresos con sus campos `time` y `revenue`.
+
+En `src/java/com/jmunoz/sec10` creamos la clase:
+
+- `Lec02BufferAssignment`
+  - Implementamos el método `getBookOrders()` que devuelve un Flux<BookOrder> que emite pedidos de libros cada 200ms.
+  - Usamos el operador `buffer()` para recoger los pedidos de libros cada 5 segundos y calcular la ganancia obtenida.
+
+## Windowing
+
+El operador `window()` es similar al operador `buffer()`, pero en lugar de recoger los elementos emitidos por un Flux en una lista, los agrupa en un nuevo Flux.
+
+![alt Window Operator](./images/37-windowing.png)
+
+Vemos que cada x items o cada x segundos, se abre una nueva window, un nuevo Flux.
+
+En un buffer esperamos, coleccionamos los items y luego se dan al subscriber, pero en un window no esperamos, sino que damos los items al subscriber cuando llegan.
+
+Podemos cambiar el subscriber cada x segundos.
+
+Imaginemos un stream de logs. Esos logs irán a un fichero de logs. Ese fichero se abrirá cada hora (por ejemplo). En este ejemplo, el fichero de logs es el subscriber y lo que se emita en esa hora irá a ese fichero.
+
+En `src/java/com/jmunoz/sec10` creamos la clase:
+
+- `Lec03Window`
+  - Vemos como usar el operador `window()` para agrupar los elementos emitidos por un Flux en un nuevo Flux, y luego procesar ese Flux.
+
+## Windowing - Assignment
+
+En la carpeta `resources` creamos el directorio `sec10` y por cada nuevo `window()` se va a crear ahí un nuevo fichero de logs.
+
+En `src/java/com/jmunoz/sec10/assignment/window` creamos la clase:
+
+- `FileWriter`
+  - Es un servicio que escribe los logs en un fichero.
+
+En `src/java/com/jmunoz/sec10` creamos la clase:
+
+- `Lec04WindowAssignment`
+  - Vamos a crear un fichero en `resources/sec10` por cada window de 1800ms. El nombre del fichero será `file1.txt`, `file2.txt`, etc.
+
+## GroupBy
+
+![alt GroupBy](./images/38-groupBy.png)
+
+Asumamos que hay un publisher que emite bolas a un ritmo muy rápido, y queremos agrupar las bolas basadas en su propiedad color.
+
+El operador `groupBy()` va a crear 4 flux internos, uno para cada color. Luego, va a enrutar las bolas a cada uno de esos flux internos según su color.
+
+Utilizamos este operador porque, al agrupar items de esta forma creando varios flux, independientemente e individualmente se pueden procesar.
+
+Ahora podemos adjuntar operadores específicos a cada flux interno. Por ejemplo, las bolas moradas podrían requerir un manejo especial, mientras que las rosadas pueden no necesitar ningún manejo extra.
+
+IMPORTANTE: En el operador `window()`, en un momento dado solo vamos a tener un flux abierto. Pero en el operador `groupBy()`, podemos tener varios flux abiertos al mismo tiempo.
+
+Por tanto, si usamos `groupBy()`, tenemos que asegurarnos de tener `low cardinality`, es decir, que el número de Flux sea pequeño, para evitar problemas de memoria. Por ejemplo, no debemos agrupar por número de teléfono.
+
+En `src/java/com/jmunoz/sec10` creamos la clase:
+
+- `Lec05GroupedFlux`
+  - Vemos como usar el operador `groupBy()` para agrupar los elementos emitidos por un Flux en varios Flux internos, y luego procesar esos Flux.
+
+## GroupBy - Assignment
+
+![alt GroupBy Assignment](./images/39-groupByAssignment.png)
+
+Imaginemos que tenemos un stream de pedidos por el que obtenemos eventos del tipo `PurchaseOrder`.
+
+Nuestro negocio está interesado en solo dos categorías, `Kids` y `Automotive`, y tenemos estas reglas de negocio:
+
+- Para `Automotive`, tenemos que añadir $100 al precio. Es la rama derecha.
+- Para `Kids`, hay una promoción, y tenemos que añadir 1 pedido gratis (price = 0). Es la rama izquierda.
+
+En `src/java/com/jmunoz/sec10/assignment/groupby` creamos la clase:
+
+- `PurchaseOrder`
+  - Es un record que representa un pedido de compra con sus campos `category`, `item` y `price`.
+- `OrderProcessingService`
+  - Es un servicio que procesa los pedidos de compra y aplica las reglas de negocio según la categoría del pedido.
+
+En `src/java/com/jmunoz/sec10` creamos la clase:
+
+- `Lec06GroupByAssignment`
+  - Ejercicio.

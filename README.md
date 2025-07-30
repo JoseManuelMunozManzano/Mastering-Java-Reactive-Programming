@@ -599,3 +599,38 @@ Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `se
   - Vemos como usar el operador `then()` para encadenar varias llamadas asíncronas y ejecutar solo una.
 - `Lec16Assignment`
   - Obtener todos los usuarios y construir un objeto combinando distintos resultados.
+
+## Batching / Windowing / Grouping
+
+Esta sección será muy útil si planeamos usar programación reactiva para Kafka, RabbitMQ, Pulsar..., donde se consume un topic para mensajes, o donde se recibe un flujo de items y un flujo interminable de mensajes.
+
+[README.md](./01-reactive-programming-playground/README.md)
+
+Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `sec10` donde están las siguientes clases:
+
+- `Lec01Buffer`
+  - Vemos como usar el operador `buffer()` para recoger los elementos emitidos por un Flux en una lista, y luego procesar esa lista.
+- En `src/java/com/jmunoz/sec10/assignment/buffer` creamos la clase:
+  - `BookOrder`
+    - Es un record que representa un pedido de libro con sus campos `genre`, `title` y `price`.
+  - `RevenueReport`
+    - Es un record que representa un informe de ingresos con sus campos `time` y `revenue`.
+- `Lec02BufferAssignment`
+  - Implementamos el método `getBookOrders()` que devuelve un Flux<BookOrder> que emite pedidos de libros cada 200ms.
+  - Usamos el operador `buffer()` para recoger los pedidos de libros cada 5 segundos y calcular la ganancia obtenida.
+- `Lec03Window`
+  - Vemos como usar el operador `window()` para agrupar los elementos emitidos por un Flux en un nuevo Flux, y luego procesar ese Flux.
+- En `src/java/com/jmunoz/sec10/assignment/window` creamos la clase:
+  - `FileWriter`
+    - Es un servicio que escribe los logs en un fichero.
+ - `Lec04WindowAssignment`
+  - Vamos a crear un fichero en `resources/sec10` por cada window de 1800ms. El nombre del fichero será `file1.txt`, `file2.txt`, etc.
+- `Lec05GroupedFlux`
+  - Vemos como usar el operador `groupBy()` para agrupar los elementos emitidos por un Flux en varios Flux internos, y luego procesar esos Flux.
+- En `src/java/com/jmunoz/sec10/assignment/groupby` creamos la clase:
+  - `PurchaseOrder`
+    - Es un record que representa un pedido de compra con sus campos `category`, `item` y `price`.
+  - `OrderProcessingService`
+    - Es un servicio que procesa los pedidos de compra y aplica las reglas de negocio según la categoría del pedido.
+- `Lec06GroupByAssignment`
+  - Ejercicio.
