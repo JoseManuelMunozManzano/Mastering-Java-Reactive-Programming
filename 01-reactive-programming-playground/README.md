@@ -1920,3 +1920,61 @@ En `src/java/com/jmunoz/sec10` creamos la clase:
 
 - `Lec06GroupByAssignment`
   - Ejercicio.
+
+# Repeat & Retry
+
+En programación reactiva sabemos que tenemos un Publisher que da data a un Subscriber.
+
+Sabemos que un Subscriber no puede esperar más data tras `onComplete()` u `onError()`.
+
+Pero tenemos dos operadores, `repeat()` y `retry()` para volver a obtener la información (u obtenerla por primera vez si hubo un error).
+
+![alt Repeat & Retry](./images/40-repeat&retry.png)
+
+## Repeat
+
+El operador `repeat()` se resubscribe al publisher cuando aparece la señal `onComplete()`.
+
+Los casos de uso para `repeat()` son: Imaginemos que tenemos una API remota que nos devuelve un Mono de una respuesta, pero nosotros necesitamos obtener varios valores, o la última actualización de dicho valor. Usando este operador, podemos obtenerlos.
+
+En `src/java/com/jmunoz/sec11` creamos la clase:
+
+- `Lec01Repeat`
+  - Vemos como usar el operador `repeat()` para resubscribirnos al publisher cuando este emite la señal onComplete().
+
+## Repeat 2
+
+En `src/java/com/jmunoz/sec11` creamos la clase:
+
+- `Lec01Repeat_2`
+  - Seguimos viendo el operador `repeat()`, asociado a más operadores, como `takeUntil()`, o usando un Supplier, o repetir tras un intervalo de tiempo...
+
+## Retry
+
+Los casos de uso para `retry()` son: Imaginemos un servicio de productos. Mandamos una petición para obtener la información del producto, y estamos ejecutando múltiples instancias del servicio de producto usando un balanceador de carga. Imaginemos que un servidor se cae y, por tanto, ante nuestra petición, devuelve un error 500 internal server error. Usando el operador `retry()`, ante este tipo de error, reintentaremos automáticamente la petición una vez más. Como el balanceador de carga puede haber rotado la petición a otra instancia de servidor que esté bien, podríamos obtener la respuesta. Es decir, estamos añadiendo resiliencia.   
+
+Es preferible usar `retryWhen()` a `retry()` por su flexibilidad.
+
+En `src/java/com/jmunoz/sec11` creamos la clase:
+
+- `Lec02Retry`
+  - Vemos como usar el operador `retry()` para resubscribirnos al publisher cuando este emite la señal onError().
+  - Vemos como usar el operador `retryWhen()`.
+
+## External Services - Repeat & Retry - Implementation
+
+- Arrancar el proyecto `java -jar external-services.jar` e ir al navegador a `http://localhost:7070/webjars/swagger-ui/index.html`.
+  - Usaremos los endpoints `demo06/country` para ver como funciona `repeat()` y `demo06/product/{id}` para ver como funciona `retry()`, donde el id 1 devuelve `Bad Request` y el id 2 devuelve un error random o a veces funciona.
+
+En `src/java/com/jmunoz/sec11/client` creamos la clase:
+
+- `ExternalServiceClient`
+- `ClientError` y `ServerError`
+  - Excepciones personalizadas
+
+En `src/java/com/jmunoz/sec11` creamos la clase:
+
+- `Lec03ExternalServiceDemo`
+  - Vemos como funciona `repeat()` haciendo peticiones a un servicio externo.
+  - Vemos como funciona `retryWhen()` haciendo peticiones a un servicio externo.
+

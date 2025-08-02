@@ -634,3 +634,25 @@ Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `se
     - Es un servicio que procesa los pedidos de compra y aplica las reglas de negocio según la categoría del pedido.
 - `Lec06GroupByAssignment`
   - Ejercicio.
+
+## Repeat & Retry
+
+[README.md](./01-reactive-programming-playground/README.md)
+
+Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `sec11` donde están las siguientes clases:
+
+- `Lec01Repeat`
+  - Vemos como usar el operador `repeat()` para resubscribirnos al publisher cuando este emite la señal onComplete().
+- `Lec01Repeat_2`
+  - Seguimos viendo el operador `repeat()`, asociado a más operadores, como `takeUntil()`, o usando un Supplier, o repetir tras un intervalo de tiempo...
+- `Lec02Retry`
+  - Vemos como usar el operador `retry()` para resubscribirnos al publisher cuando este emite la señal onError().
+  - Vemos como usar el operador `retryWhen()`.
+- En `src/java/com/jmunoz/sec11/client` creamos la clase:
+  - `ExternalServiceClient`
+  - `ClientError` y `ServerError`
+    - Excepciones personalizadas
+  - En `src/java/com/jmunoz/sec11` creamos la clase:
+    - `Lec03ExternalServiceDemo`
+      - Vemos como funciona `repeat()` haciendo peticiones a un servicio externo.
+      - Vemos como funciona `retryWhen()` haciendo peticiones a un servicio externo.
