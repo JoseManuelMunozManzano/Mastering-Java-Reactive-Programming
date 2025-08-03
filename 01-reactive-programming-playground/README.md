@@ -1978,3 +1978,122 @@ En `src/java/com/jmunoz/sec11` creamos la clase:
   - Vemos como funciona `repeat()` haciendo peticiones a un servicio externo.
   - Vemos como funciona `retryWhen()` haciendo peticiones a un servicio externo.
 
+# Sinks
+
+## Introduction
+
+Hasta ahora, cuando queremos crear un Publisher ejecutamos:
+
+- Mono.fromSupplier(...)
+- Flux.range(...)
+- Flux.generate(...)
+- Flux.create(...)
+- Flux.interval(...)
+- ...
+
+Todas estas opciones funcionarán solo cuando tengamos un subscriber. O consumimos lo que Reactor Netty nos provee, o creamos un publisher.
+
+Pero nos falta una cosa: Necesitamos una herramienta para emitir items manualmente (lo que queramos, cuando queramos), sin bucles ni rangos ni intervalos.
+
+Debemos ser capaces de emitir data incluso si no tenemos subscribers, y debemos ser capaces de compartirlos con los múltiples threads si queremos.
+
+Aquí es donde entran los `sinks`.
+
+![alt Sinks](./images/41-sinks.png)
+
+Los `sinks` actúan tanto como producer como subscriber. Es decir, es un `processor`.
+
+La forma en la que funcionan es: Crearemos `sinks` usando factory methods y, una vez creados, actúan como producer y subscriber a la vez.
+
+Los `sinks` también pueden actuar como buenos puntos de integración, ya que una clase puede emitir data sin tener que acceder a métodos de otras clases.
+
+Y las otras clases sencillamente pueden subscribirse y reaccionar, tal y como vemos en la imagen siguiente.
+
+![alt Sinks 2](./images/42-sinks2.png)
+
+## Sink One - Try Emit
+
+Utilizamos `Sinks` para crear un sink. 
+
+En `src/java/com/jmunoz/sec12` creamos la clase:
+
+- `Lec01SinkOne`
+  -  Vemos `Sinks.one()` que nos permite crear un sink con el que podemos emitir un máximo de 1 item.
+
+## Sink One - Emit Failure Handler
+
+En `src/java/com/jmunoz/sec12` seguimos trabajando con la clase:
+
+- `Lec01SinkOne`
+  - Vemos el método `sink.emitValue()` y cómo se diferencia de `sink.tryEmitValue()`.
+
+## Sink Types
+
+![alt Sinks Types](./images/43-sinksTypes.png)
+
+## Sink Many - Unicast
+
+En `src/java/com/jmunoz/sec12` creamos la clase:
+
+- `Lec02SinkUnicast`
+  - `Sinks.many().unicast();` es un publisher tipo Flux en el que solo un subscriber puede subscribirse.
+
+## Sink Many - Thread Safety
+
+En `src/java/com/jmunoz/sec12` creamos la clase:
+
+- `Lec03SinkThreadSafety`
+  - Vamos a discutir si se puede compartir un `sink` con varios threads, es decir, si es Thread Safe.
+  - Vamos a ver EmitFailureHandler.
+
+## Sink Many - Multicast
+
+En `src/java/com/jmunoz/sec12` creamos la clase:
+
+- `Lec04Multicast`
+  - `Sinks.many().multicast();` es un publisher tipo Flux en el que varios subscribers pueden subscribirse.
+  - El que subscriba tarde pierde la data que ya se haya emitido.
+
+## Sink Many - Multicast - Direct Best Effort
+
+En `src/java/com/jmunoz/sec12` creamos la clase:
+
+- `Lec05MulticastDirectBestEffort`
+  - Vemos como solucionar problemas de rendimiento cuando hay más de un subscriber y uno de ellos es muy lento.
+
+## Sink Many - Multicast - Direct All Or Nothing
+
+En `src/java/com/jmunoz/sec12` creamos la clase:
+
+- `Lec06MulticastDirectAllOrNothing`
+  - Usando `directAllOrNothing()` queremos decir: O podemos dar el item a todos los subscribers o a ninguno.
+
+## Sink Many - Replay
+
+En `src/java/com/jmunoz/sec12` creamos la clase:
+
+- `Lec07Replay`
+  - `Sinks.many().replay();` es un publisher tipo Flux en el que varios subscribers pueden subscribirse.
+  - El que subscriba tarde sigue obteniendo todos los valores.
+
+## Assignment
+
+Vamos a implementar algo parecido a un `Slack room`.
+
+![alt Sinks Assignment](./images/44-sinksAssignment.png)
+
+Vamos a simular que solo tenemos una `Slack room` donde añadimos algunos miembros que pueden mantener conversaciones.
+
+Todos los participantes de la `room` recibirán toda la conversación, independientemente de cuando se subscriban.
+
+La parte de la derecha de la imagen es una idea de como hacerlo, el concepto, pero se puede implementar como se desee.
+
+En `src/java/com/jmunoz/sec12/assignment` creamos la clase:
+
+- `SlackMember`
+- `SlackRoom`
+- `SlackMessage`
+
+En `src/java/com/jmunoz/sec12` creamos la clase:
+
+- `Lec08SlackAssignment`

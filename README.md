@@ -656,3 +656,38 @@ Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `se
     - `Lec03ExternalServiceDemo`
       - Vemos como funciona `repeat()` haciendo peticiones a un servicio externo.
       - Vemos como funciona `retryWhen()` haciendo peticiones a un servicio externo.
+
+## Sinks
+
+Vamos a ver algo que todavía nos falta, y es una herramienta para emitir items manualmente (lo que queramos, cuando queramos).
+
+Debemos ser capaces de emitir data incluso si no tenemos subscribers. Aquí es donde entran los `sinks` que actúan tanto como publisher como subscriber.
+
+[README.md](./01-reactive-programming-playground/README.md)
+
+Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `sec12` donde están las siguientes clases:
+
+- `Lec01SinkOne`
+  -  Vemos `Sinks.one()` que nos permite crear un sink con el que podemos emitir un máximo de 1 item.
+  - Vemos el método `sink.emitValue()` y cómo se diferencia de `sink.tryEmitValue()`.
+- `Lec02SinkUnicast`
+  - `Sinks.many().unicast();` es un publisher tipo Flux en el que solo un subscriber puede subscribirse.
+- `Lec03SinkThreadSafety`
+  - Vamos a discutir si se puede compartir un `sink` con varios threads, es decir, si es Thread Safe.
+  - Vamos a ver EmitFailureHandler.
+- `Lec04Multicast`
+  - `Sinks.many().multicast();` es un publisher tipo Flux en el que varios subscribers pueden subscribirse.
+  - El que subscriba tarde pierde la data que ya se haya emitido.
+- `Lec05MulticastDirectBestEffort`
+  - Vemos como solucionar problemas de rendimiento cuando hay más de un subscriber y uno de ellos es muy lento.
+- `Lec06MulticastDirectAllOrNothing`
+  - Usando `directAllOrNothing()` queremos decir: O podemos dar el item a todos los subscribers o a ninguno.
+- `Lec07Replay`
+  - `Sinks.many().replay();` es un publisher tipo Flux en el que varios subscribers pueden subscribirse.
+  - El que subscriba tarde sigue obteniendo todos los valores.
+- En `src/java/com/jmunoz/sec12/assignment` creamos la clase:
+  - `SlackMember`
+  - `SlackRoom`
+  - `SlackMessage`
+  - En `src/java/com/jmunoz/sec12` creamos la clase:
+    - `Lec08SlackAssignment`
