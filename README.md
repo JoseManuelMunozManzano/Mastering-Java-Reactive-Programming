@@ -691,3 +691,28 @@ Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `se
   - `SlackMessage`
   - En `src/java/com/jmunoz/sec12` creamos la clase:
     - `Lec08SlackAssignment`
+
+## Context
+
+El `context` es parecido a `Thread Local`, con la diferencia que `context` es muy seguro de usar e inmutable.
+
+Esta sección es avanzada y puede que no encontremos casos de uso en nuestras aplicaciones.
+
+[README.md](./01-reactive-programming-playground/README.md)
+
+Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `sec13` donde están las siguientes clases:
+
+- `Lec01Context`
+  - Vemos un ejemplo de como usar `context` y qué es `deferContextual()` y `contextWrite()`.
+- `Lec02ContextAppendUpdate`
+  - Vemos un ejemplo de como añadir/actualizar el `context`, devolviendo un nuevo objeto del mismo.
+- `Lec03ContextPropagation`
+- Vemos como propagar el context a varios producers.
+  - En `src/java/com/jmunoz/sec13/client` creamos las clases:
+    - `ExternalServiceClient`
+      - Enviamos una petición HTTP a nuestro `book service`, recogiendo la categoría y viendo si se permite la llamada.
+    - `UserService`
+    - `RateLimiter`
+  - En `src/java/com/jmunoz/sec13` creamos la clase:
+    - `Lec04ContextRateLimiterDemo`
+      - Creamos nuestro ejemplo de limitador de velocidad con `context`. Aquí se indica el subscriber con el usuario que quiere hacer la petición.

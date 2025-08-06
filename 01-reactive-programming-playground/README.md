@@ -2097,3 +2097,104 @@ En `src/java/com/jmunoz/sec12/assignment` creamos la clase:
 En `src/java/com/jmunoz/sec12` creamos la clase:
 
 - `Lec08SlackAssignment`
+
+# Context
+
+El `context` es parecido a `Thread Local`, con la diferencia que `context` es muy seguro de usar e inmutable.
+
+Esta sección es avanzada y puede que no encontremos casos de uso en nuestras aplicaciones.
+
+## Introduction
+
+¿Qué es `context` y como podemos usarlo? Imaginemos una petición HTTP.
+
+- El header de la petición HTTP es metadata sobre los request que estamos enviando.
+- Simples pares key/value
+  - Un map inmutable
+- Preocupaciones transversales
+  - Autenticación
+  - Limitación de velocidad
+  - Monitoreo / Tracing
+  - ...
+
+Con el mismo concepto, un subscriber puede subscribirse a un publisher, y pasar información adicional sobre la petición, que no tiene por qué ser parte de los method parameters de la petición.
+
+Así que los adjuntamos como algo llamado `context`, como normalmente hacemos con las cabeceras de las peticiones HTTP. 
+
+Con el `context` podemos manejar todas estas preocupaciones transversales sin contaminar el código del publisher.
+
+Por tanto, el `context` es como el header de una petición HTTP, pares de key/value y un map inmutable.
+
+Además, en la vida real no tendremos solo un producer, un operator y un subscriber. Probablemente tendremos varios producers y los subscribers se subscribirán a estos publishers combinados o fusionados.
+
+Así que, a veces, querremos pasar alguna información sobre la petición a un producer y, en vez de actualizar los method parameter para cada uno de los producer o actualizar el código, podemos adjuntar información adicional sobre la petición como un objeto `context` oculto, para que todos los producers puedan ver lo que se envía como parte de este `context` si es necesario.
+
+![alt Context](./images/45-context.png)
+
+## Context - Demo
+
+En `src/java/com/jmunoz/sec13` creamos la clase:
+
+- `Lec01Context`
+  - Vemos un ejemplo de como usar `context` y qué es `deferContextual()` y `contextWrite()`.
+
+## Context - Append/Update/Delete
+
+Aunque `context` es un mapa inmutable, siempre puede añadirse/actualizarse esta información adicional.
+
+Tener en cuenta que se devolverá un nuevo objeto `context`.
+
+En `src/java/com/jmunoz/sec13` creamos la clase:
+
+- `Lec02ContextAppendUpdate`
+  - Vemos un ejemplo de como añadir/actualizar el `context`, devolviendo un nuevo objeto del mismo.
+
+## Context - Propagation
+
+En `src/java/com/jmunoz/sec13` creamos la clase:
+
+- `Lec03ContextPropagation`
+  - Vemos como propagar el context a varios producers.
+
+## Rate Limiter with Context
+
+En las próximas clases vamos a implementar una funcionalidad de limitador de velocidad usando `context`.
+
+El objetivo principal de esta práctica es hacer un ejercicio parecido a algún proyecto de la vida real, para darnos una idea de como implementar `context` en nuestro proyecto.
+
+![alt Context Example](./images/46-contextExample.png)
+
+La funcionalidad de negocio que queremos solucionar es la siguiente: tenemos un servicio externo `book service` y mandamos una petición para obtener el nombre de un libro.
+
+Nuestra aplicación tiene dos tipos diferentes de usuarios: standard y prime (o premium)
+
+Nuestros usuarios no paran de mandar peticiones. Imaginemos que tenemos que pagar a `book service` por cada petición.
+
+Vamos a limitar las llamadas salientes de forma que, si el usuario es standard, permitimos 2 llamadas cada 5 segundos y, si el usuario es prime, permitimos 3 llamadas cada 5 segundos.
+
+Esta es la forma en la que vamos a implementar la solución:
+
+![alt Context Implementation](./images/47-contextExampleImplementation.png)
+
+Los servicios entre el subscriber y el client van a añadir o modificar el `context` para que el cliente tome una decisión.
+
+El subscriber ya añade información al `context` y `user service` decidirá, dado el nombre de usuario, su categoría (standard o prime).
+
+El servicio `rate limiter` monitorizará si se permite realizar la llamada a `book service` o no.
+
+Por último, `client`, basado en lo anterior, decide si se hace la llamada.
+
+- Arrancar el proyecto `java -jar external-services.jar` e ir al navegador a `http://localhost:7070/webjars/swagger-ui/index.html`.
+  - Usaremos el endpoint `demo07/book` que actúa como nuestro `book service`.
+
+En `src/java/com/jmunoz/sec13/client` creamos las clases:
+
+- `ExternalServiceClient`
+  - Enviamos una petición HTTP a nuestro `book service`, recogiendo la categoría y viendo si se permite la llamada.
+- `UserService`
+- `RateLimiter`
+
+En `src/java/com/jmunoz/sec13` creamos la clase:
+
+- `Lec04ContextRateLimiterDemo`
+  - Creamos nuestro ejemplo de limitador de velocidad con `context`. Aquí se indica el subscriber con el usuario que quiere hacer la petición.
