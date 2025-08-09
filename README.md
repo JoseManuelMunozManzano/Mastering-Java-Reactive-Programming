@@ -745,3 +745,56 @@ Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `sr
   - Vemos como hacer que los tests actúen como producer, usando `TestPublisher`.
 - `Lec10TimeoutTest`
   - Vamos a ver como probar que un test se complete en una duración específica.
+
+## Whatś Next?
+
+![alt Microservicios](./images/10-Microservicios.png)
+
+Consideremos una app con una arquitectura de microservicios en la que tenemos muchos servicios que se comunican entre ellos.
+
+Supongamos que recibimos cientos de miles de peticiones por minuto. ¿Cómo podemos procesar todas esas peticiones eficientemente sin tener que escalar horizontalmente?
+
+¿Cómo podemos usar nuestra CPU o nuestra memoria de forma apropiada?
+
+Tenemos dos opciones:
+
+- Java Virtual Thread: Escribimos código síncrono bloqueante pero Java lo convierte a IO no bloqueante para procesar peticiones más eficientemente.
+- Reactive Microservice with Spring WebFlux: Nos permite usar comunicación basado en streams.
+
+Con cualquiera de estas dos opciones, podemos desarrollar un microservicio capaz de procesar las peticiones del front de forma más eficiente.
+
+![alt Comunicación entre microservicios](./images/11-ComunicacionEntreMicroservicios.png)
+
+¿Cómo podemos mejorar la comunicación entre nuestros backend, la latencia de red que afecta a todo el procesamiento de nuestra app?
+
+Para una comunicación entre microservicios usando RESTful APIs (request - response), usaremos Spring Web.
+
+Para una comunicación entre microservicios usando streams (intercambio continuo de información) junto con RESTful APIs, usaremos Spring WebFlux. Aquí es donde brilla la programación reactiva.
+
+Si no queremos usar REST para comunicarnos entre microservicios, sino que queremos baja latencia, podemos usar gRPC o rSocket.
+
+Por último, para una comunicación asíncrona completamente basada en eventos entre microservicios, podemos usar Kafka.
+
+![alt Comunicación con el Frontend](./images/12-ComunicacionConElFrontend.png)
+
+Para la comunicación con el frontend (navegador o aplicación móvil) podemos usar GraphQL para evitar algunos de los problemas que plantea RESTful APIs, y por temas de recuperación eficiente de la data.
+
+Particularmente para aplicaciones móviles, gRPC y rSocket funcionan muy bien.
+
+![alt Caching](./images/13-Caching.png)
+
+Para mejorar el rendimiento de mi app y reducir el trabajo redundante, podemos usar Redis, que es una capa de caché de alto rendimiento que provee operaciones superrápidas de lectura/escritura.
+
+![alt Resiliencia](./images/14-Resiliencia.png)
+
+Hay varios patrones de diseño que podemos seguir para desarrollar una aplicación de gran resiliencia, evitando que problemas en un servicio se propaguen por toda la arquitectura.
+
+![alt Testing](./images/15-Testing.png)
+
+Para testing, podemos usar Selenium y ejecutar test de UI automáticos via pipelines CI/CD a través de Jenkins.
+
+![alt Despliegue y Orquestación](./images/16-DeploymentAndOrchestration.png)
+
+Podemos usar Docker y Kubernetes.
+
+Con Kubernetes podemos desarrollar aplicaciones que provean soporte multi-cloud, para no estar atados a una nube en concreto.
