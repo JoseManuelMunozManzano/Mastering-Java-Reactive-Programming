@@ -716,3 +716,32 @@ Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `se
   - En `src/java/com/jmunoz/sec13` creamos la clase:
     - `Lec04ContextRateLimiterDemo`
       - Creamos nuestro ejemplo de limitador de velocidad con `context`. Aquí se indica el subscriber con el usuario que quiere hacer la petición.
+
+## Unit Testing With Step Verifier
+
+Vamos a ver como podemos probar nuestro código si comenzamos a usar programación reactiva en nuestro desarrollo diario de aplicaciones.
+
+[README.md](./01-reactive-programming-playground/README.md)
+
+Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `src/test/java/com/jmunoz/tests` donde están las siguientes clases:
+
+- `Lec01MonoTest`
+  - Vemos como hacer unit test de un Mono usando `StepVerifier`.
+- `Lec02EmptyErrorTest`
+  - Vemos como validar las señales empty o error.
+- `Lec03FluxTest`
+  - Vemos como hacer unit test de un Flux usando `StepVerifier`.
+- `Lec04RangeTest`
+  - Vemos como probar cuando nuestro publisher Flux emite muchos items.
+- `Lec05AssertNextTest`
+  - Vemos como usar los métodos `assertNext()` para testear un items pasándole un Consumer, y `collectList()` para recoger todos los items.
+- `Lec06VirtualTimeTest`
+  - Vemos como usar `withVirtualTime()` para probar producers que tardan mucho en emitir items.
+- `Lec07ScenarioNameTest`
+  - Vamos a ver como proveer una descripción a los tests que fallan.
+- `Lec08ContextTest`
+  - Vemos como pasar el objeto `context` via test a nuestro producer, usando el método `withInitialContext()`
+- `Lec09PublisherTest`
+  - Vemos como hacer que los tests actúen como producer, usando `TestPublisher`.
+- `Lec10TimeoutTest`
+  - Vamos a ver como probar que un test se complete en una duración específica.

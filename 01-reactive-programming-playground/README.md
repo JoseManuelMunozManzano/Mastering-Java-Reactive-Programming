@@ -2198,3 +2198,140 @@ En `src/java/com/jmunoz/sec13` creamos la clase:
 
 - `Lec04ContextRateLimiterDemo`
   - Creamos nuestro ejemplo de limitador de velocidad con `context`. Aquí se indica el subscriber con el usuario que quiere hacer la petición.
+
+# Unit Testing With Step Verifier
+
+Vamos a ver como podemos probar nuestro código si comenzamos a usar programación reactiva en nuestro desarrollo diario de aplicaciones.
+
+## Introduction
+
+Como la programación reactiva es un paradigma distinto de programación, la forma de probarlo también varía ligeramente, pero es fácil.
+
+Nuestro código, programado en `src/main/java`, si es un publisher, al final del día son métodos que devuelven un `Mono` o un `Flux`.
+
+Nuestros tests, programados en `src/test/java` actuarán como un subscriber a estos métodos y verificarán que obtengamos el item que esperamos.
+
+O, si nuestro código es un subscriber que acepta, por ejemplo, un `Flux<Product>`, entonces nuestros tests actuarán como un producer.
+
+Para probar nuestra aplicación Project Reactor dispone de una utilidad o dependencia adicional llamada `StepVerifier`, y es lo que vamos a usar.
+
+Es una dependencia de test y lo usaremos como parte de `src/test/java` para validar nuestras clases de servicio de la aplicación.
+
+Ejemplo de uso:
+
+```java
+StepVerifier.create(YOUR PUBLISHER TEST)
+    .expect....(VALUE TO TEST)
+```
+
+Para poder usarla en nuestras aplicaciones, hay que añadir al pom la dependencia siguiente:
+
+```xml
+<dependency>
+    <groupId>io.projectreactor</groupId>
+    <artifactId>reactor-test</artifactId>
+    <scope>test</scope>
+</dependency>
+```
+
+## Unit Testing Mono
+
+En `src/test/java/com/jmunoz/tests` creamos la clase:
+
+- `Lec01MonoTest`
+  - Vemos como hacer unit test de un Mono usando `StepVerifier`.
+
+## Empty / Error - Validation
+
+En `src/test/java/com/jmunoz/tests` creamos la clase:
+
+- `Lec02EmptyErrorTest`
+  - Vemos como validar las señales empty o error.
+
+## Verify vs Expect
+
+Cuando usamos `StepVerifier` podemos ver métodos como los siguientes:
+
+```java
+verifyError()
+verifyError(Class<? extends Throwable> aClass)
+verifyComplete()
+```
+
+¿Cuál es la diferencia entre estos métodos y `expectError().verify()`, `expectError(clazz).verify()` y `expectComplete().verify()`?
+
+Los tres primeros métodos indicados son solo métodos que nos pueden convenir más, porque se combinan dos métodos en uno solo.
+
+Es decir, son perfectamente intercambiables.
+
+## Unit Testing Flux
+
+En `src/test/java/com/jmunoz/tests` creamos la clase:
+
+- `Lec03FluxTest`
+  - Vemos como hacer unit test de un Flux usando `StepVerifier`.
+
+## Step Verifier - Expect Next Count / Matches
+
+En `src/test/java/com/jmunoz/tests` creamos la clase:
+
+- `Lec04RangeTest`
+  - Vemos como probar cuando nuestro publisher Flux emite muchos items. 
+
+## Step Verifier - Assert Next / Collect All
+
+En `src/test/java/com/jmunoz/tests` creamos la clase:
+
+- `Lec05AssertNextTest`
+  - Vemos como usar los métodos `assertNext()` para testear un items pasándole un Consumer, y `collectList()` para recoger todos los items.
+
+## Virtual Time Scheduler
+
+Para comprender el problema para el cual necesitamos este `virtual time scheduler`, imaginemos que tenemos un producer que emite varios items, pero cada item se emite tras una espera de 10sg.
+
+Si le creamos un test, tendremos que esperar mucho tiempo a que se termine, cosa que no queremos.
+
+Necesitamos una mejor solución para probar producers como este, y Reactor provee un método `withVvirtualTime()` para ello.
+
+En `src/test/java/com/jmunoz/tests` creamos la clase:
+
+- `Lec06VirtualTimeTest`
+  - Vemos como usar `withVirtualTime()` para probar producers que tardan mucho en emitir items.
+
+## Scenario Name / Step Description
+
+En `src/test/java/com/jmunoz/tests` creamos la clase:
+
+- `Lec07ScenarioNameTest`
+  - Vamos a ver como proveer una descripción a los tests que fallan.
+
+## Unit Testing Context
+
+En `src/test/java/com/jmunoz/tests` creamos la clase:
+
+- `Lec08ContextTest`
+  - Vemos como pasar el objeto `context` via test a nuestro producer, usando el método `withInitialContext()`
+
+## Test Publisher
+
+Hasta ahora, hemos asumido que nuestra app actúa como un producer de nuestras clases de servicio. Exponemos un producer y escribimos tests como subscriber para validar nuestros producers.
+
+Pero, ¿qué ocurre cuando mi app no expone ningún producer, sino que espera un producer?
+
+Para probar reglas de negocio usando un producer, Reactor provee una utilidad llamada `TestPublisher`.
+
+En `src/test/java/com/jmunoz/tests` creamos la clase:
+
+- `Lec09PublisherTest`
+  - Vemos como hacer que los tests actúen como producer, usando `TestPublisher`.
+
+## Timeout Test
+
+En `src/test/java/com/jmunoz/tests` creamos la clase:
+
+- `Lec10TimeoutTest`
+  - Vamos a ver como probar que un test se complete en una duración específica.
+
+## Summary
+
+![alt StepVerifier](./images/48-StepVerifier.png)
