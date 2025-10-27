@@ -46,7 +46,7 @@ Imagen tomada de Wikipedia.
 - Un `Thread del Sistema Operativo` es una parte del proceso, y un proceso puede contener uno o más threads. Los threads dentro de un proceso pueden compartir el espacio de memoria.
   - Podemos ver un proceso como una unidad de recursos y un thread como una unidad de ejecución.
 - El Sistema Operativo tiene un `Scheduler`, cuya misión es asignar el thread a la CPU para su ejecución y determinar cuanto tiempo puede ejecutarse ese thread. Si hay más de un core intentará asignar un thread a cada core.
-  - El cambio que hace un Scheduler de un thread a otro se llama `context switch`. Cuando ocurre hay que almacenar el estado del thread saliente para poder recuperarlo luego en ese punto. Esta información se guarda en el `stack memory` cuyo tamaño, 1Mb o 2Mb generalmente, es determinado cuando comienza el proceso o se crea el thread, y no puede modificarse una vez el tread se ha creado.
+  - El cambio que hace un Scheduler de un thread a otro se llama `context switch`. Cuando ocurre hay que almacenar el estado del thread saliente para poder recuperarlo luego en ese punto. Esta información se guarda en el `stack memory` cuyo tamaño, 1Mb o 2Mb generalmente, es determinado cuando comienza el proceso o se crea el thread, y no puede modificarse una vez el thread se ha creado.
   - También existe `heap memory` que es donde se almacenan objetos creados dinámicamente, como ArrayList, HashMap...
   - En la `stack memory` se almacenan las variables locales, referencias a objetos y la información de funciones llamadas.
 
@@ -70,7 +70,7 @@ IO significa `Inbound / Outbound`, es decir, Entrante / Saliente.
 
 Los modelos son los siguientes:
 
-- Sync
+- Sync + Blocking
   - Nuestra app hace una petición a otra app, y el thread espera ociosamente hasta obtener la respuesta.
 - Async
   - Nuestra app puede usar un thread pool. Un thread 1 puede crear otro thread 2 y delegar la tarea, quedando libre el thread 1, pero el thread 2 tendrá que esperar ociosamente hasta obtener la respuesta.
@@ -120,7 +120,7 @@ Pero, si se quiere usar Virtual Threads para programación reactiva, entonces es
 
 ### ¿Qué es la programación reactiva?
 
-- Es un paradigma de programación diseñada para procesar flujos (streams) de mensajes de manera no bloqueante (non-blocking) y asíncrona, mientras se maneja backpressure.
+- Es un paradigma de programación diseñado para procesar flujos (streams) de mensajes de manera no bloqueante (non-blocking) y asíncrona, mientras se maneja backpressure.
 - Está basada en el patrón de diseño Observer.
 
 Veamos distintos lenguajes de programación y sus paradigmas de programación:
@@ -282,7 +282,7 @@ Es decir, el que da la data será el Publisher y el que pregunta por dicha data,
 
 ## Mono
 
-[README.md](./01-reactive-programming-playground/README.md)
+[README.md](./01-reactive-programming-playground/README.md#mono)
 
 Para una implementación manual de un flujo reactivo, ver proyecto `01-reactive-programming-playground`, paquete `sec01`.
 
@@ -340,7 +340,7 @@ Flux, al igual que Mono, provee factory methods para poder crearlo rápidamente 
 - fromArray
 - fromStream
 
-[README.md](./01-reactive-programming-playground/README.md)
+[README.md](./01-reactive-programming-playground/README.md#flux)
 
 Para ver ejemplos de Project Reactor con Flux, ver proyecto `01-reactive-programming-playground`, paquete `sec03` donde están las siguientes clases:
 
@@ -378,7 +378,7 @@ Para ver ejemplos de Project Reactor con Flux, ver proyecto `01-reactive-program
 
 Vamos a ver como emitir items programáticamente, por ejemplo emitir data hasta que se cumpla una condición.
 
-[README.md](./01-reactive-programming-playground/README.md)
+[README.md](./01-reactive-programming-playground/README.md#flux---emitir-items-programáticamente)
 
 Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `sec04` donde están las siguientes clases:
 
@@ -412,7 +412,7 @@ Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `se
 
 ## Operators
 
-[README.md](./01-reactive-programming-playground/README.md)
+[README.md](./01-reactive-programming-playground/README.md#operators)
 
 Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `sec05` donde están las siguientes clases:
 
@@ -444,7 +444,7 @@ Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `se
 
 Vamos a hablar de dos publishers, `Hot` y `Cold`.
 
-[README.md](./01-reactive-programming-playground/README.md)
+[README.md](./01-reactive-programming-playground/README.md#hot--cold-publishers)
 
 Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `sec06` donde están las siguientes clases:
 
@@ -472,8 +472,8 @@ Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `se
 ## Threading & Schedulers
 
 Vamos a comprender el comportamiento predeterminado de un setup simple de Flux Publisher y Subscriber, abordando los problemas de bloqueo y la mejora del uso de hilos para optimizar el rendimiento en aplicaciones reactivas.
-
-[README.md](./01-reactive-programming-playground/README.md)
+./01-reactive-programming-playground/README.md
+[README.md](./01-reactive-programming-playground/README.md#threading--schedulers)
 
 Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `sec07` donde están las siguientes clases:
 
@@ -504,7 +504,7 @@ Los flujos reactivos sabemos que tienen que ver con flujos no bloqueantes que se
 
 Vamos a hablar de backpressure y de las estrategias para manejarla.
 
-[README.md](./01-reactive-programming-playground/README.md)
+[README.md](./01-reactive-programming-playground/README.md#back-pressure--overflow-strategy)
 
 Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `sec08` donde están las siguientes clases:
 
@@ -528,7 +528,7 @@ Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `se
 
 Vamos a ver como combinar varios publishers en uno.
 
-[README.md](./01-reactive-programming-playground/README.md)
+[README.md](./01-reactive-programming-playground/README.md#combining-publishers)
 
 Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `sec09` donde están las siguientes clases:
 
@@ -604,7 +604,7 @@ Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `se
 
 Esta sección será muy útil si planeamos usar programación reactiva para Kafka, RabbitMQ, Pulsar..., donde se consume un topic para mensajes, o donde se recibe un flujo de items y un flujo interminable de mensajes.
 
-[README.md](./01-reactive-programming-playground/README.md)
+[README.md](./01-reactive-programming-playground/README.md#batching--windowing--grouping)
 
 Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `sec10` donde están las siguientes clases:
 
@@ -637,7 +637,7 @@ Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `se
 
 ## Repeat & Retry
 
-[README.md](./01-reactive-programming-playground/README.md)
+[README.md](./01-reactive-programming-playground/README.md#repeat--retry)
 
 Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `sec11` donde están las siguientes clases:
 
@@ -663,12 +663,12 @@ Vamos a ver algo que todavía nos falta, y es una herramienta para emitir items 
 
 Debemos ser capaces de emitir data incluso si no tenemos subscribers. Aquí es donde entran los `sinks` que actúan tanto como publisher como subscriber.
 
-[README.md](./01-reactive-programming-playground/README.md)
+[README.md](./01-reactive-programming-playground/README.md#sinks)
 
 Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `sec12` donde están las siguientes clases:
 
 - `Lec01SinkOne`
-  -  Vemos `Sinks.one()` que nos permite crear un sink con el que podemos emitir un máximo de 1 item.
+  - Vemos `Sinks.one()` que nos permite crear un sink con el que podemos emitir un máximo de 1 item.
   - Vemos el método `sink.emitValue()` y cómo se diferencia de `sink.tryEmitValue()`.
 - `Lec02SinkUnicast`
   - `Sinks.many().unicast();` es un publisher tipo Flux en el que solo un subscriber puede subscribirse.
@@ -698,7 +698,7 @@ El `context` es parecido a `Thread Local`, con la diferencia que `context` es mu
 
 Esta sección es avanzada y puede que no encontremos casos de uso en nuestras aplicaciones.
 
-[README.md](./01-reactive-programming-playground/README.md)
+[README.md](./01-reactive-programming-playground/README.md#context)
 
 Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `sec13` donde están las siguientes clases:
 
@@ -721,7 +721,7 @@ Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `se
 
 Vamos a ver como podemos probar nuestro código si comenzamos a usar programación reactiva en nuestro desarrollo diario de aplicaciones.
 
-[README.md](./01-reactive-programming-playground/README.md)
+[README.md](./01-reactive-programming-playground/README.md#unit-testing-with-step-verifier)
 
 Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `src/test/java/com/jmunoz/tests` donde están las siguientes clases:
 
@@ -748,7 +748,7 @@ Para ver ejemplos ver proyecto `01-reactive-programming-playground`, paquete `sr
 
 ## Whatś Next?
 
-![alt Microservicios](./images/10-Microservicios.png)
+![alt Microservicios](./images/10-Microservicios.png)****
 
 Consideremos una app con una arquitectura de microservicios en la que tenemos muchos servicios que se comunican entre ellos.
 
