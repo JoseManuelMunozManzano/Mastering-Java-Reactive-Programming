@@ -12,7 +12,7 @@ import reactor.core.scheduler.Schedulers;
 // En una arquitectura de microservicios, donde tendremos muchas llamadas de red, es mejor IO no bloqueante.
 public class Lec08Parallel {
 
-    public static final Logger log = LoggerFactory.getLogger(Lec07PublishOnSubscribeOn.class);
+    public static final Logger log = LoggerFactory.getLogger(Lec08Parallel.class);
 
     public static void main(String[] args) {
 

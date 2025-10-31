@@ -27,6 +27,7 @@ public class Lec08MonoFromFuture {
         // Para que sea lazy, la forma de ejecutar el CompletableFuture es la siguiente, en la que
         // usamos un Supplier que si es Lazy.
         Mono.fromFuture(Lec08MonoFromFuture::getName);
+//                .subscribe(Util.subscriber());
 
         // Asi bloqueamos el thread main.
         Util.sleepSeconds(1);

@@ -30,7 +30,7 @@ public class Lec11FluxMono {
         // Imaginemos que queremos recuperar el nombre de un usuario a partir de su ID y luego grabarlo.
         // getUsername devuelve un Mono<String> y queremos grabarlo como un Flux<String>.
         //
-        // Usamos el méotdo `Flux.from(Mono)` para convertir un Mono en un Flux.
+        // Usamos el méto-do `Flux.from(Mono)` para convertir un Mono en un Flux.
         // Un Mono empty se convertirá en un Flux empty y un Mono error se convertirá en un Flux error.
         // Para probar: 1 es Ok, 2 es empty y 3 es error.
         var mono = getUsername(1);

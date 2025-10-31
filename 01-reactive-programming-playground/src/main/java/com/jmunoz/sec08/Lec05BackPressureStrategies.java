@@ -13,7 +13,7 @@ import java.time.Duration;
     - buffer - onBackpressureBuffer()
     - drop  - onBackpressureDrop()
     - latest - onBackpressureLatest()
-    - error - onBackpressureBuffer()
+    - error - onBackpressureError()
 */
 public class Lec05BackPressureStrategies {
 

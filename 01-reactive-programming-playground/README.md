@@ -698,7 +698,7 @@ En `src/java/com/jmunoz/sec04` creamos la clase:
 
 ## Flux Generate
 
-Mientras que `Flux.create()` acepta un Consumer de `FluxSync`, el método `Flux.generate()` acepta un Consumen de `SynchronousSink`.
+Mientras que `Flux.create()` acepta un Consumer de `FluxSink`, el método `Flux.generate()` acepta un Consumen de `SynchronousSink`.
 
 La diferencia es que con `Flux.generate()` podemos emitir solo un item y que con `Flux.create()` obteníamos la request y nos permitía controlar el bucle para emitir items. Es decir es de más bajo nivel.
 
@@ -747,7 +747,7 @@ Flux.generate(
             // ...
             return someObject;  // Devolvemos el estado actualizado
         },
-        someObject -> close   // Invocado solo una vez. Sirve también para onComlete, onError, onCancel...
+        someObject -> close   // Invocado solo una vez. Sirve también para onComplete, onError, onCancel...
 )
 ```
 
@@ -848,6 +848,8 @@ Hay una gran cantidad de operators do que se pueden usar, los más comunes son:
 - doFinally
 - doOnRequest
 - doFirst
+- doOnDiscard
+- doOnTerminate
 
 En `src/java/com/jmunoz/sec05` creamos la clase:
 
@@ -1275,7 +1277,7 @@ Indicar que estas estrategias puede que no sean aplicables en todas las aplicaci
 
 ## Introducción
 
-Sabemos que el subscriber envía una petición al publisher por una cantidad de items que quiere recibir, y el publisher envía esa cantidad de items para que el subscriber la coonsuma.
+Sabemos que el subscriber envía una petición al publisher por una cantidad de items que quiere recibir, y el publisher envía esa cantidad de items para que el subscriber la consuma.
 
 Si el subscriber necesita más items, envía otra petición al publisher usando el objeto subscription. Esto puede funcionar así por siempre o parar en algún momento.
 

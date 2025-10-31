@@ -30,7 +30,7 @@ public class Lec01Context {
     private static Mono<String> getWelcomeMessage() {
         return Mono.deferContextual(ctx -> {
             // El context es un map.
-            // Siguiendo con la nueva condición, vemos si es nuestro context tenemos un usuario autenticado.
+            // Siguiendo con la nueva condición, vemos si en nuestro context tenemos un usuario autenticado.
             if (ctx.hasKey("user")) {
                 // No olvidar devolver un publisher.
                 return Mono.just("Welcome %s".formatted(ctx.get("user").toString()));

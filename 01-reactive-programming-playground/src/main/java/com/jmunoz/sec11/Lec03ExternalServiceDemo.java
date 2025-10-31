@@ -37,7 +37,7 @@ public class Lec03ExternalServiceDemo {
     private static void retry() {
         var client = new ExternalServiceClient();
 
-        // Llamamos solo una vez, pero el operador repeat() repite la petición las veces necesarias.
+        // Llamamos solo una vez, pero el operador retryWhen() repite la petición si es un error de server.
         // El id 1 devuelve siempre BadRequest.
         // El id 2 puede devolver un producto, BadRequest o ServerInternalError.
         client.getProductName(2)

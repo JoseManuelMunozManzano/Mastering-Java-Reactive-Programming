@@ -66,7 +66,7 @@ import reactor.core.publisher.Flux;
         No hace el sentido de ir para arriba, sino que el producer emite el valor 1.
             Ahí se escribe doOnNext-1: 1, doOnNext-2: 1.
         El subscriber recibe la emisión del item 1 y este escribe el log `subscriber received: 1`.
-        Como take(2) está operativo, se cancela la subscripción. Va de take(2) hacia el producer. Notar que no es el subscriber el que cancela y por eso no se escribe doOnCanel-2.
+        Como take(2) está operativo, se cancela la subscripción. Va de take(2) hacia el producer. Notar que no es el subscriber el que cancela y por eso no se escribe doOnCancel-2.
             Ahí se escribe doOnCancel-1, doFinally-1: cancel.
         Ahora, take(2) va hacia el subscriber indicando que se ha completado la subscripción.
             Ahí se escribe doOnComplete-2 y doOnTerminate-2.

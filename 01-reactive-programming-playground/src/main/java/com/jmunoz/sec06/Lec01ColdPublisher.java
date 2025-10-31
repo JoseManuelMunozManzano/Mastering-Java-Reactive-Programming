@@ -26,7 +26,7 @@ public class Lec01ColdPublisher {
         // Tenemos dos subscribers.
         // Cada subscriber obtiene sus datos de forma independiente.
         // Este es el comportamiento por defecto.
-        // Ver ejemplo en package 04, clase Lec02FluxCreateRefactor y la clase que usa NameGenerator.
+        // Ver ejemplo en package sec04, clase Lec02FluxCreateRefactor y la clase que usa NameGenerator.
         // ¿Por qué se supone que FluxSink es como un único suscriptor? No funcionó para múltiples suscriptores.
         // Porque FluxSink, su méto-do accept(), se ejecuta cada vez que se crea un nuevo suscriptor, y el último sobreescribe el anterior.
         flux.subscribe(Util.subscriber("sub1"));

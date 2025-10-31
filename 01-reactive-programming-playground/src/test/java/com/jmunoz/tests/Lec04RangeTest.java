@@ -50,7 +50,7 @@ public class Lec04RangeTest {
                 .verify();
     }
 
-    // ¿Qué pasa si no sé que valores me va a emitir el publisher? Es decir, si emite valores aleatorios.
+    // ¿Qué pasa si no sé qué valores me va a emitir el publisher? Es decir, si emite valores aleatorios.
     // No podemos usar expectNext() para validar, porque no sabemos el valor que vamos a obtener.
     // Podemos usar expectNextMatches() que acepta un Predicate que debe satisfacerse.
     // Pero solo se hace para el primer item emitido. Todavía nos quedan 49 items por recibir.

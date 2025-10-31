@@ -9,7 +9,7 @@ import reactor.core.publisher.Flux;
 // Por defecto, el hilo actual (current thread) hace to-do el trabajo.
 public class Lec01DefaultBehaviorDemo {
 
-    private static final Logger log = LoggerFactory.getLogger(Lec04HotPublisherCache.class);
+    private static final Logger log = LoggerFactory.getLogger(Lec01DefaultBehaviorDemo.class);
 
     public static void main(String[] args) {
 

@@ -14,7 +14,7 @@ public class Lec08ContextTest {
     private static Mono<String> getWelcomeMessage() {
         return Mono.deferContextual(ctx -> {
             // El context es un map.
-            // Siguiendo con la nueva condición, vemos si es nuestro context tenemos un usuario autenticado.
+            // Siguiendo con la nueva condición, vemos si en nuestro context tenemos un usuario autenticado.
             if (ctx.hasKey("user")) {
                 // No olvidar devolver un publisher.
                 return Mono.just("Welcome %s".formatted(ctx.get("user").toString()));
@@ -28,7 +28,7 @@ public class Lec08ContextTest {
     // méto-do withInitialContext() al que le pasamos un mapa con nuestro context.
     //
     // Luego, indicamos lo que esperamos que nos emita el producer, pasándole la opción del
-    // StepVerifierOptins.
+    // StepVerifierOptions.
     @Test
     public void welcomeMessageTest() {
         var options = StepVerifierOptions.create().withInitialContext(Context.of("user", "sam"));

@@ -12,20 +12,20 @@ import java.util.function.UnaryOperator;
 public class OrderProcessingService {
 
     private static final Map<String, UnaryOperator<Flux<PurchaseOrder>>> PROCESSOR_MAP = Map.of(
-            "Kids", kidsProcesing(),
-            "Automotive", automotiveProcesing()
+            "Kids", kidsProcessing(),
+            "Automotive", automotiveProcessing()
     );
 
     // Obtenemos un Flux de PurchaseOrder sin importar la categoría, ya que asumimos que
     // ya se habrán filtrado y aquí solo entrarán las de Automotive.
-    private static UnaryOperator<Flux<PurchaseOrder>> automotiveProcesing() {
+    private static UnaryOperator<Flux<PurchaseOrder>> automotiveProcessing() {
         return flux -> flux
                 .map(po -> new PurchaseOrder(po.item(), po.category(), po.price() + 100));
     }
 
     // Obtenemos un Flux de PurchaseOrder sin importar la categoría, ya que asumimos que
     // ya se habrán filtrado y aquí solo entrarán las de Kids.
-    private static UnaryOperator<Flux<PurchaseOrder>> kidsProcesing() {
+    private static UnaryOperator<Flux<PurchaseOrder>> kidsProcessing() {
         return flux -> flux
                 // Creamos una orden gratuita, pero empezamos (startWith) con la original.
                 .flatMap(po -> getFreeKidsOrder(po).flux().startWith(po));

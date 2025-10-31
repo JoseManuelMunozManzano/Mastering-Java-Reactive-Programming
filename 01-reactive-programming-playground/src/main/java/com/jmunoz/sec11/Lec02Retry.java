@@ -59,7 +59,7 @@ public class Lec02Retry {
     // Podemos usar un operador filter() que acepta un Predicate de Throwable.
     //
     // Como se ha dicho, si sigue fallando tras los reintentos, obtenemos dos excepciones,
-    // RetryExhaustedException y la original. Si solo queremos la original, podemos indicando onRetryExhaustedThrow()
+    // RetryExhaustedException y la original. Si solo queremos la original, podemos indicar onRetryExhaustedThrow()
     // que acepta una BiFunction (spec, signal) donde signal es la excepción original, y devuelve un Throwable
     // al subscriber.
     private static void demo3() {
@@ -80,7 +80,7 @@ public class Lec02Retry {
         // non-blocking IO
         return Mono.fromSupplier(() -> {
                     // La segunda vez que nos resubscribimos ya funciona.
-                    // Cambiar a 5 para que siga fallando en los ejemplos, y ver que excepciones devuelve.
+                    // Cambiar de 3 a 5 para que siga fallando en los ejemplos, y ver que excepciones devuelve.
                     if (atomicInteger.incrementAndGet() < 5) {
                         throw new RuntimeException("oops!");
                     }

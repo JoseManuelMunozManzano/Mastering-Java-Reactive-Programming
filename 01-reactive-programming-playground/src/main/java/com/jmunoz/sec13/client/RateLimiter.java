@@ -13,7 +13,7 @@ public class RateLimiter {
 
     // Este map es mutable.
     // Por cada categoría, cuántos intentos hemos hecho.
-    private static final Map<String, Integer> categoryAttemps = Collections.synchronizedMap(new HashMap<>());
+    private static final Map<String, Integer> categoryAttempts = Collections.synchronizedMap(new HashMap<>());
 
     // Recordar que al inicializar, se ejecuta este static automáticamente.
     static {
@@ -41,9 +41,9 @@ public class RateLimiter {
     private static synchronized boolean canAllow(String category) {
         // Imaginemos standard.
         // Empezamos con 2 intentos y vamos restando.
-        var attempts = categoryAttemps.getOrDefault(category, 0);
+        var attempts = categoryAttempts.getOrDefault(category, 0);
         if (attempts > 0) {
-            categoryAttemps.put(category, attempts - 1);
+            categoryAttempts.put(category, attempts - 1);
             return true;
         }
         return false;
@@ -58,8 +58,8 @@ public class RateLimiter {
         Flux.interval(Duration.ofSeconds(5))
                 .startWith(0L)
                 .subscribe(i -> {
-                    categoryAttemps.put("standard", 2);
-                    categoryAttemps.put("prime", 3);
+                    categoryAttempts.put("standard", 2);
+                    categoryAttempts.put("prime", 3);
                 });
     }
 }

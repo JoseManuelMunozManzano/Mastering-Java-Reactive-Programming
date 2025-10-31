@@ -11,8 +11,8 @@ public class SlackRoom {
     private static final Logger log = LoggerFactory.getLogger(SlackRoom.class);
 
     private final String name;
-    private Sinks.Many<SlackMessage> sink;
-    private Flux<SlackMessage> flux;
+    private final Sinks.Many<SlackMessage> sink;
+    private final Flux<SlackMessage> flux;
 
     public SlackRoom(String name) {
         this.name = name;

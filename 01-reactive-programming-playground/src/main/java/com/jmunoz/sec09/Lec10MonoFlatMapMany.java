@@ -19,7 +19,7 @@ public class Lec10MonoFlatMapMany {
             No es un Mono<Mono<Order>> porque OrderService.getUserOrders() devuelve un Flux<Order>.
 
             Volviendo a flatMap(), este operador asume que el publisher interno es un tipo Mono.
-            Como no es el caso, flattMap() no es adecuado aquí.
+            Como no es el caso, flatMap() no es adecuado aquí.
         */
 //        Mono<Flux<Order>> sam = UserService.getUserId("sam")
 //                .map(userId -> OrderService.getUserOrders(userId));

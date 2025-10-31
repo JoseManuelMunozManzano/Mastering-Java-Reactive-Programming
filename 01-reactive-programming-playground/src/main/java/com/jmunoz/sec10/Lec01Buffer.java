@@ -13,7 +13,7 @@ public class Lec01Buffer {
 //        demo1();
 //        demo2();
 //        demo3();
-        demo4();
+          demo4();
 
         // Para evitar que el programa termine inmediatamente al terminar el hilo principal.
         Util.sleepSeconds(60);
@@ -68,7 +68,7 @@ public class Lec01Buffer {
                 //
                 // Para demo2 no haría falta porque ya emitimos los elementos en grupos de 3.
                 //
-                // Para demo3 no haría falta porque ya emitimos los elementos en cada 500 ms.
+                // Para demo3 no haría falta porque ya emitimos los elementos cada 500 ms.
                 //
                 // Pero lo dejamos siempre porque queremos emitir solo 10 eventos.
                 .take(10)
